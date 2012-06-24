@@ -191,30 +191,90 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         return new OpenLayers.Format.Px3JSON.Services(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
     },
     
-    createLayer : function() {
+    createLayer : function(params) {
+        var paramsObject = params || {};
+        var parsedResponse = paramsObject.parsedResponse;
+        var serviceObject = paramsObject.serviceObject;
+        var layerMaxExtent, tileSize, tileOrigin, projection, title, opacity;
+        var subLayerIds = '';
+        var resolutions = [];
+             
+        if (parsedResponse) {
+            layerMaxExtent = new OpenLayers.Bounds(
+                parsedResponse.fullExtent.xmin, 
+                parsedResponse.fullExtent.ymin, 
+                parsedResponse.fullExtent.xmax, 
+                parsedResponse.fullExtent.ymax  
+                );
+                    
+            if (parsedResponse.tileInfo) {
+                tileSize = new OpenLayers.Size(parsedResponse.tileInfo.cols, parsedResponse.tileInfo.rows);
+                
+                tileOrigin = new OpenLayers.LonLat(parsedResponse.tileInfo.origin.x , parsedResponse.tileInfo.origin.y);
+                
+                for (var i=0; i<parsedResponse.tileInfo.lods.length; i++) {
+                    resolutions.push(parsedResponse.tileInfo.lods[i].resolution);
+                }
+            }
+            projection = 'EPSG:' + parsedResponse.spatialReference.wkid;
+            
+            title = parsedResponse.documentInfo.Title;
+                    
+            
+                    
+            for (var layersIdx = 0;layersIdx < parsedResponse.layers.length;layersIdx++) {
+                var layer = parsedResponse.layers[layersIdx];
+                subLayerIds += layer.id + ',';
+            }
+            subLayerIds = subLayerIds.substring(0, subLayerIds.length - 1); 
+            
+            
+        }
+        
         switch (this.type) {
             case 'dynamic':
                 return new OpenLayers.Layer.ArcGIS93Rest(
                     this.displayName,
-                    this.url,
+                    this.url + '/export',
                     {
-                        layers : [],
+                        layers : subLayerIds,
                         metadata: {
                             layerId : this.id
-                        }
+                        },
+                        alwaysInRange : false,
+                        opacity : this.opacity,
+                        visibility : false,
+                        singleTile : true,
+                        ratio : 1,
+                        maxExtent: layerMaxExtent,  
+                        maxResolution : 'auto'
                     })
-                break;
             case 'tiled':
-                return new OpenLayers.Layer.ArcGISCache(
-                    this.displayName,
-                    this.url,
-                    {
-                        layers : [],
-                        metadata: {
-                            layerId : this.id
+                var autoParse = true; // Testing with auto-parsing from server
+                if (autoParse) {
+                    return new OpenLayers.Layer.ArcGISCache(
+                        title,
+                        this.url + '/tile', 
+                        {
+                            layers : subLayerIds,
+                            layerInfo : parsedResponse
+                        });
+                } else {
+                    return new OpenLayers.Layer.ArcGISCache(
+                        title,
+                        this.url + '/tile', 
+                        {
+                            layers : subLayerIds,
+                            isBaseLayer: false,
+                            resolutions: resolutions,                        
+                            tileSize: tileSize,                        
+                            tileOrigin: tileOrigin,                        
+                            maxExtent: layerMaxExtent,                        
+                            projection: projection,
+                            visibility: false
                         }
-                        
-                    });
+                        );
+                }
         }
     },
     

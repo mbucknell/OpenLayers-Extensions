@@ -422,9 +422,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
             var multiLayerArray = [];
             for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
-                var backgroundMap = params.parsedJSONObject.mapConfig.backgroundMaps[backgroundMapsIdx];
+                var backgroundMap = parsedJSONObject.mapConfig.backgroundMaps[backgroundMapsIdx];
                 var serviceGroupId = backgroundMap.serviceGroupId;
-                var layerNames = params.parsedJSONObject.serviceGroups[serviceGroupId].serviceIds;
+                var layerNames = parsedJSONObject.serviceGroups[serviceGroupId].serviceIds;
                 var layers = [];
                 
                 for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
@@ -443,7 +443,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         
             completedCallback({
                 backgroundMaps : multiLayerArray,
-                parsedJSONObject : this
+                parsedJSONObject : parsedJSONObject
             })
         } else {
             var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
@@ -468,7 +468,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                     }
                     var parsedResponse = (new OpenLayers.Format.JSON).read(doc);
                 
-                    var layer = createLayer({
+                    var layer = this.serviceObject.createLayer({
                         parsedResponse : parsedResponse,
                         serviceObject : serviceObject
                     })
@@ -498,6 +498,14 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
             result[serviceLayerId] = serviceLayer;
         }
         return result;
+    },
+    
+    getSpatialReference : function() {
+        return this.extents[this.mapConfig.fullExtentId].getSpatialReference();
+    },
+    
+    getMaxExtent : function() {
+        return this.extents[this.mapConfig.fullExtentId].getMaxExtent();
     },
     
     CLASS_NAME : 'OpenLayers.Format.Px3JSON.v17'

@@ -69,79 +69,7 @@ OpenLayers.Format.Px3JSON.BackgroundMaps = OpenLayers.Class(OpenLayers.Format.Px
     },
     
     createBackgroundMapServices : function(params) {
-        var backgroundServiceLayers = params.backgroundServiceLayers || {};
-        var parsedJSONObject = params.parsedJSONObject;
-        var backgroundServiceLayerNames = params.backgroundServiceLayerNames;
-        var backgroundServiceLayersCount = Object.keys(backgroundServiceLayers).length;
-        var multiLayerArray = [];
-    
-        if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
-            Ext.each(parsedJSONObject.mapConfig.backgroundMaps, function(item, index) {
-                var serviceGroupId = item.serviceGroupId;
-                var layerNames = this.parsedJSONObject.serviceGroups[serviceGroupId].serviceIds;
-                var layers = [];
-
-                Ext.iterate(layerNames, function(item) {
-                    this.layers.push(this.backgroundServiceLayers[item]);
-                }, {
-                    backgroundServiceLayers : this.backgroundServiceLayers,
-                    layers : layers
-                })
-            
-                var multiLayer = new OpenLayers.Layer.NationalMapMulti(
-                    item.displayName,
-                    {
-                        layers : layers,
-                        isBaseLayer : false
-                    }
-                    )
-                this.multiLayerArray.push(multiLayer);
-            }, {
-                backgroundServiceLayers : backgroundServiceLayers,
-                parsedJSONObject : parsedJSONObject,
-                multiLayerArray : multiLayerArray
-            })
         
-            params.completedCallback({
-                backgroundMaps : multiLayerArray,
-                parsedJSONObject : parsedJSONObject
-            })
-        } else {
-            var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
-            var serviceObject = parsedJSONObject.services[backgroundServiceLayerName];
-        
-            Ext.Ajax.request({
-                url : OpenLayers.ProxyHost + escape(serviceObject.url + '/?f=json'),
-                timeout: params.timeout || 10000,
-                backgroundServiceLayers : backgroundServiceLayers,
-                parsedJSONObject : parsedJSONObject,
-                completedCallback : params.completedCallback,
-                backgroundServiceLayerNames : backgroundServiceLayerNames,
-                backgroundServiceLayerName : backgroundServiceLayerName,
-                serviceObject : serviceObject,
-                success : function(response, options) {
-                    var parsedResponse = Ext.util.JSON.decode(response.responseText);
-                    var backgroundServiceLayers = options.backgroundServiceLayers;
-                
-                    var layer = createLayer({
-                        parsedResponse : parsedResponse,
-                        serviceObject : serviceObject
-                    })
-                    backgroundServiceLayers[options.backgroundServiceLayerName] = layer;
-                
-                    createBackgroundMapServices({
-                        backgroundServiceLayers : backgroundServiceLayers,
-                        parsedJSONObject : options.parsedJSONObject,
-                        completedCallback : options.completedCallback,
-                        backgroundServiceLayerNames : options.backgroundServiceLayerNames
-                    })
-                },
-                failure : function(response, options) {
-                    console.log("Layer could not be created");
-                }
-            })
-        }
-    
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.BackgroundMaps"

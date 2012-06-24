@@ -72,5 +72,18 @@ OpenLayers.Format.Px3JSON.Extents = OpenLayers.Class(OpenLayers.Format.Px3JSON, 
         return new OpenLayers.Format.Px3JSON.Extents(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
     },
     
+    getMaxExtent : function() {
+        new OpenLayers.Bounds(this.xmin, this.ymin, this.xmax, this.ymax)
+    },
+    
+    getSpatialReference : function() {
+        var wkid = this.spatialReference.wkid;
+        switch (wkid) {
+            case 102113:
+            default:
+                return new OpenLayers.Projection("EPSG:900913");
+        }
+    },
+    
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Extents"
 });
