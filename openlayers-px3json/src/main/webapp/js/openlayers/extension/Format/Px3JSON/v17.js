@@ -362,5 +362,143 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         }
     }, 
     
+    createNationalMapMultiLayersObject : function() {
+        var nationalMapLayersObject = {};
+    
+        for (var serviceGroupsKey in this.serviceGroups) {
+            var serviceGroup = this.serviceGroups[serviceGroupsKey];
+            var serviceIds = serviceGroup.serviceIds;
+            var serviceLayers = [];
+            for (var serviceIdsIdx = 0;serviceIdsIdx < serviceIds.length;serviceIdsIdx++) {
+                var serviceId = serviceIds[serviceIdsIdx];
+                var serviceObject = this.services[serviceId];
+                var serviceLayer = serviceObject.createLayer();
+                serviceLayers.push(serviceLayer);
+            }
+            
+            var multiLayer = new OpenLayers.Layer.NationalMapMulti(
+                serviceGroupsKey,
+                {
+                    layers : serviceLayers,
+                    isBaseLayer : false
+                }
+                )
+                
+            nationalMapLayersObject[serviceGroupsKey] = multiLayer;
+                    
+        }
+    
+        return nationalMapLayersObject;
+    },
+    
+    createBackgroundServiceLayerNames :  function() {
+        var backgroundServiceLayerNames = [];
+
+        for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
+            var backgroundMapObject = this.mapConfig.backgroundMaps[backgroundMapsIdx];
+            var serviceGroupId = backgroundMapObject.serviceGroupId;
+            var serviceIds = this.serviceGroups[serviceGroupId].serviceIds;
+            for (var serviceIdsIdx = 0;serviceIdsIdx < serviceIds.length;serviceIdsIdx++) {
+                var item = serviceIds[serviceIdsIdx];
+                var indexOf = function(array, item) {
+                    for (var i=0;i<array.length;i++) {
+                        if (array[i] === item) return i;
+                    }
+                    return -1
+                }
+                if (indexOf(backgroundServiceLayerNames, item) == -1) backgroundServiceLayerNames.push(item);
+            }
+        }
+        return backgroundServiceLayerNames;
+    },
+    
+    createBackgroundServicesObject : function(params) {
+        var backgroundServiceLayers = params.backgroundServiceLayers || {};
+        var backgroundServiceLayerNames = params.backgroundServiceLayerNames || this.createBackgroundServiceLayerNames();
+        var backgroundServiceLayersCount = Object.keys(backgroundServiceLayers).length;
+        var completedCallback = params.completedCallback;
+        var parsedJSONObject = params.parsedJSONObject || this;
+    
+        if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
+            var multiLayerArray = [];
+            for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
+                var backgroundMap = params.parsedJSONObject.mapConfig.backgroundMaps[backgroundMapsIdx];
+                var serviceGroupId = backgroundMap.serviceGroupId;
+                var layerNames = params.parsedJSONObject.serviceGroups[serviceGroupId].serviceIds;
+                var layers = [];
+                
+                for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
+                    layers.push(backgroundServiceLayers[layerNames[layerNamesIdx]]);
+                }
+            
+                var multiLayer = new OpenLayers.Layer.NationalMapMulti(
+                    backgroundMap.displayName,
+                    {
+                        layers : layers,
+                        isBaseLayer : false
+                    }
+                    )
+                multiLayerArray.push(multiLayer);
+            }
+        
+            completedCallback({
+                backgroundMaps : multiLayerArray,
+                parsedJSONObject : this
+            })
+        } else {
+            var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
+            var serviceObject = this.services[backgroundServiceLayerName];
+        
+            OpenLayers.Request.GET({
+                url: serviceObject.url + '/?f=json',
+                scope: {
+                    that : this,
+                    backgroundServiceLayers : backgroundServiceLayers,
+                    parsedJSONObject : this,
+                    completedCallback : params.completedCallback,
+                    backgroundServiceLayerNames : backgroundServiceLayerNames,
+                    backgroundServiceLayerName : backgroundServiceLayerName,
+                    serviceObject : serviceObject
+                },
+                success: function(request) {
+                    var doc = request.responseXML;
+        
+                    if (!doc || !doc.documentElement) {
+                        doc = request.responseText;
+                    }
+                    var parsedResponse = (new OpenLayers.Format.JSON).read(doc);
+                
+                    var layer = createLayer({
+                        parsedResponse : parsedResponse,
+                        serviceObject : serviceObject
+                    })
+                    this.backgroundServiceLayers[this.backgroundServiceLayerName] = layer;
+                
+                    this.parsedJSONObject.createBackgroundServicesObject({
+                        backgroundServiceLayers : this.backgroundServiceLayers,
+                        parsedJSONObject : this.parsedJSONObject,
+                        completedCallback : this.completedCallback,
+                        backgroundServiceLayerNames : this.backgroundServiceLayerNames
+                    })
+                    
+                },
+                failure : function(response, options) {
+                    console.log("Layer could not be created");
+                }
+            });
+        }
+    
+    },
+    
+    createServiceLayers : function() {
+        var result = {};
+        for (var serviceLayerId in this.services) {
+            var serviceObject = this.services[serviceLayerId];
+            var serviceLayer = serviceObject.createLayer();
+            result[serviceLayerId] = serviceLayer;
+        }
+        return result;
+    },
+    
     CLASS_NAME : 'OpenLayers.Format.Px3JSON.v17'
 })

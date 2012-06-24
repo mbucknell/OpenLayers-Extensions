@@ -1,19 +1,19 @@
 OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
     
     /**
-    * Class: OpenLayers.Px3JSON.Service (Base Context)
-    * 
-    * Service Configuration Object
-    * 
-    * The services object can be thought of as a hash map with the key being 
-    * the service id and value being a service configuration object.
-    * 
-    *  @requires OpenLayers/Format/Px3JSON.js
-    *  @requires OpenLayers/Format/Px3JSON/LayerConfigs.js
-    *  @requires OpenLayers/Format/Px3JSON/InfoTemplates.js
-    *  
-    *  @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
-    */
+     * Class: OpenLayers.Px3JSON.Service (Base Context)
+     * 
+     * Service Configuration Object
+     * 
+     * The services object can be thought of as a hash map with the key being 
+     * the service id and value being a service configuration object.
+     * 
+     *  @requires OpenLayers/Format/Px3JSON.js
+     *  @requires OpenLayers/Format/Px3JSON/LayerConfigs.js
+     *  @requires OpenLayers/Format/Px3JSON/InfoTemplates.js
+     *  
+     *  @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+     */
     
     /**
      * Property: id
@@ -189,6 +189,33 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.Services(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    createLayer : function() {
+        switch (this.type) {
+            case 'dynamic':
+                return new OpenLayers.Layer.ArcGIS93Rest(
+                    this.displayName,
+                    this.url,
+                    {
+                        layers : [],
+                        metadata: {
+                            layerId : this.id
+                        }
+                    })
+                break;
+            case 'tiled':
+                return new OpenLayers.Layer.ArcGISCache(
+                    this.displayName,
+                    this.url,
+                    {
+                        layers : [],
+                        metadata: {
+                            layerId : this.id
+                        }
+                        
+                    });
+        }
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Services"

@@ -49,6 +49,6 @@ OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
     isValidType : function(obj) {
         return true;
     },
-
+    
     CLASS_NAME: "OpenLayers.Format.Px3JSON"
 });     
