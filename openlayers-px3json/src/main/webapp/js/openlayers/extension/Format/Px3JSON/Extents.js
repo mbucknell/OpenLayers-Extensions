@@ -73,7 +73,7 @@ OpenLayers.Format.Px3JSON.Extents = OpenLayers.Class(OpenLayers.Format.Px3JSON, 
     },
     
     getMaxExtent : function() {
-        new OpenLayers.Bounds(this.xmin, this.ymin, this.xmax, this.ymax)
+        return new OpenLayers.Bounds(this.xmin, this.ymin, this.xmax, this.ymax)
     },
     
     getSpatialReference : function() {

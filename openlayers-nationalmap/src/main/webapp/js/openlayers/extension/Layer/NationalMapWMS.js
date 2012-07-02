@@ -24,23 +24,25 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
      * {Object} Hashtable of default parameter key/value pairs 
      */
 	
-	//f=image&dpi=96&transparent=true&format=png8&bbox={%22xmin%22:-20037508.342789244,%22ymin%22:-20037508.342789236,%22xmax%22:20037508.342789244,%22ymax%22:20037508.342789244,%22spatialReference%22:{%22wkid%22:102113}}&bboxSR=102113&imageSR=102113&size=256,256',
+    //f=image&dpi=96&transparent=true&format=png8&bbox={%22xmin%22:-20037508.342789244,%22ymin%22:-20037508.342789236,%22xmax%22:20037508.342789244,%22ymax%22:20037508.342789244,%22spatialReference%22:{%22wkid%22:102113}}&bboxSR=102113&imageSR=102113&size=256,256',
 
-    DEFAULT_PARAMS: { format: "png8",
-                      transparent: "true",
-                      f: 'image',
-                      dpi: 96,
-                      bboxSR: 102100,
-                      imageSR: 102100
-                     },
+    DEFAULT_PARAMS: {
+        format: "png8",
+        transparent: "true",
+        f: 'image',
+        dpi: 96,
+        bboxSR: 102100,
+        imageSR: 102100
+    },
                      
                      
-     layerUrlParams: null,
+    layerUrlParams: null,
      
-     transitionEffect: 'resize',
-	 displayOutsideMaxExtent: true,
+    transitionEffect: 'resize',
     
-     singleTile: true,
+    displayOutsideMaxExtent: true,
+    
+    singleTile: true,
     
     /**
      * Property: reproject
@@ -105,13 +107,13 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
     initialize: function(name, url, params, options) {
         var newArguments = [];
         //uppercase params
-       // params = OpenLayers.Util.upperCaseObject(params);
+        // params = OpenLayers.Util.upperCaseObject(params);
         newArguments.push(name, url, params, options);
         OpenLayers.Layer.Grid.prototype.initialize.apply(this, newArguments);
         OpenLayers.Util.applyDefaults(
-                       this.params, 
-                       this.DEFAULT_PARAMS
-                       );
+            this.params, 
+            this.DEFAULT_PARAMS
+            );
 
 
         //layer is transparent        
@@ -127,7 +129,7 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
             //  format, depending on teh browser's capabilities
             if (this.params.format == "image/jpeg") {
                 this.params.format = OpenLayers.Util.alphaHack() ? "image/gif"
-                                                                 : "image/png";
+                : "image/png";
             }
         }
 
@@ -154,9 +156,9 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
         
         if (obj == null) {
             obj = new OpenLayers.Layer.WMS(this.name,
-                                           this.url,
-                                           this.params,
-                                           this.getOptions());
+                this.url,
+                this.params,
+                this.getOptions());
         }
 
         //get all additions from superclasses
@@ -178,53 +180,55 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
     reverseAxisOrder: function() {
         return (parseFloat(this.params.VERSION) >= 1.3 && 
             OpenLayers.Util.indexOf(this.yx, 
-            this.map.getProjectionObject().getCode()) !== -1)
+                this.map.getProjectionObject().getCode()) !== -1)
     },
     
     
     
     
     removeSubLayer: function(subId) {
-    	if (this.layersUrlParam != null) {
-    		var tmpLayersUrl = '';
-    		var subList = this.layersUrlParam.split(',')
-    		if (subList.length > 1) {
-    			for (var i = 0; i < subList.length; i++) {
-    				if (parseInt(subId) != parseInt(subList[i])) {
-    					tmpLayersUrl += subList[i] + ',';
-    				}
-    			}
-    			this.layersUrlParam = tmpLayersUrl.substr(0,tmpLayersUrl.length-1);
-    		} else {
-    			this.layersUrlParam = null;
-    		}
-    	}
-    	if (this.layersUrlParam == null && this.params.layers) {
-    		delete this.params.layers;
-    	} else {
-    		this.params.layers = 'show:' + this.layersUrlParam;
-    	}
+        if (this.layersUrlParam != null) {
+            var tmpLayersUrl = '';
+            var subList = this.layersUrlParam.split(',')
+            if (subList.length > 1) {
+                for (var i = 0; i < subList.length; i++) {
+                    if (parseInt(subId) != parseInt(subList[i])) {
+                        tmpLayersUrl += subList[i] + ',';
+                    }
+                }
+                this.layersUrlParam = tmpLayersUrl.substr(0,tmpLayersUrl.length-1);
+            } else {
+                this.layersUrlParam = null;
+            }
+        }
+        if (this.layersUrlParam == null && this.params.layers) {
+            delete this.params.layers;
+        } else {
+            this.params.layers = 'show:' + this.layersUrlParam;
+        }
     },
 
     appendSubLayer: function(subId) {
-    	if (this.layersUrlParam == null) {
-    		this.layersUrlParam = '' + subId;
-    	} else {
-    		//make sure sublayer id isn't already there
-    		var subList = this.layersUrlParam.split(',');
-    		for (var i = 0; i < subList.length; i++) {
-    			if (parseInt(subId) == parseInt(subList[i])) {
-    				return;	//already there
-    			}
-    		}
-    		this.layersUrlParam += ',' + subId;
+        if (this.layersUrlParam == null) {
+            this.layersUrlParam = '' + subId;
+        } else {
+            //make sure sublayer id isn't already there
+            var subList = this.layersUrlParam.split(',');
+            for (var i = 0; i < subList.length; i++) {
+                if (parseInt(subId) == parseInt(subList[i])) {
+                    return;	//already there
+                }
+            }
+            this.layersUrlParam += ',' + subId;
     		
-    		//now order them to help to allow browser caching of image
-    		subList = this.layersUrlParam.split(',');
-    		subList.sort(function(a,b){return a - b});
-    		this.layersUrlParam = subList.join();
-    	}
-		this.params.layers = 'show:' + this.layersUrlParam;
+            //now order them to help to allow browser caching of image
+            subList = this.layersUrlParam.split(',');
+            subList.sort(function(a,b){
+                return a - b
+                });
+            this.layersUrlParam = subList.join();
+        }
+        this.params.layers = 'show:' + this.layersUrlParam;
     },
     
     
@@ -250,8 +254,8 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
         var reverseAxisOrder = this.reverseAxisOrder();
         
         newParams.bbox = this.encodeBBOX ?
-            bounds.toBBOX(null, reverseAxisOrder) :
-            bounds.toArray(reverseAxisOrder);
+        bounds.toBBOX(null, reverseAxisOrder) :
+        bounds.toArray(reverseAxisOrder);
         var b = bounds.toArray();
         newParams.bbox = '{"xmin":' + b[0] + ',"ymin":' + b[1] + ',"xmax":' + b[2] + ',"ymax":' + b[3] + ',"spatialReference":{"wkid":102113}}';
         newParams.size = imageSize.w + ',' + imageSize.h;
@@ -272,7 +276,7 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
      */
     addTile:function(bounds,position) {
         return new OpenLayers.Tile.Image(this, position, bounds, 
-                                         null, this.tileSize);
+            null, this.tileSize);
     },
 
     /**
@@ -290,7 +294,7 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
         //var upperParams = OpenLayers.Util.upperCaseObject(newParams);
         var newArguments = [newParams];
         return OpenLayers.Layer.Grid.prototype.mergeNewParams.apply(this, 
-                                                             newArguments);
+            newArguments);
     },
 
     /** 
@@ -311,7 +315,7 @@ OpenLayers.Layer.NationalMapWMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
     getFullRequestString:function(newParams, altUrl) {
 
         return OpenLayers.Layer.Grid.prototype.getFullRequestString.apply(
-                                                    this, arguments);
+            this, arguments);
     },
 
     CLASS_NAME: "OpenLayers.Layer.NationalMapWMS"
