@@ -378,14 +378,15 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
             serviceGroup.displayName,
             {
                 layers : layers,
-                isBaseLayer : false
+                isBaseLayer : false,
+                alwaysInRange : true
             }
             )
                         
         scales = multiLayer.getScales();
         for (var serviceLayersIdx = 0;serviceLayersIdx < layers.length;serviceLayersIdx++) {
             var serviceLayer = layers[serviceLayersIdx];
-            if (!serviceLayer.minZoom && !serviceLayer.maxZoom) {
+            if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
                 var minScale = serviceLayer.scales[0]
                 var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
                 var minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
@@ -426,7 +427,12 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         var backgroundServiceLayersCount = Object.keys(backgroundServiceLayers).length;
         var completedCallback = params.completedCallback;
         var px3jsonObject = params.px3jsonObject || this;
-    
+        var useTNMLayers = params.useTNMLayers;
+        var autoParseArcGISCache = params.autoParseArcGISCache;
+        
+        if (useTNMLayers == undefined) useTNMLayers = false;
+        if (autoParseArcGISCache == undefined) autoParseArcGISCache = true;
+        
         if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
             var multiLayerArray = [];
             for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
@@ -440,6 +446,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                 backgroundMaps : multiLayerArray,
                 px3jsonObject : px3jsonObject
             })
+            
         } else {
             var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
             var serviceObject = this.services[backgroundServiceLayerName];
@@ -453,7 +460,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                     completedCallback : params.completedCallback,
                     backgroundServiceLayerNames : backgroundServiceLayerNames,
                     backgroundServiceLayerName : backgroundServiceLayerName,
-                    serviceObject : serviceObject
+                    serviceObject : serviceObject,
+                    useTNMLayers : useTNMLayers,
+                    autoParseArcGISCache : autoParseArcGISCache
                 },
                 success: function(request) {
                     var doc = request.responseXML;
@@ -465,7 +474,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                 
                     var layer = this.serviceObject.createLayer({
                         parsedResponse : parsedResponse,
-                        serviceObject : serviceObject
+                        serviceObject : serviceObject,
+                        useTNMLayers : this.useTNMLayers,
+                        autoParseArcGISCache : this.autoParseArcGISCache
                     })
                     this.backgroundServiceLayers[this.backgroundServiceLayerName] = layer;
                 
@@ -473,7 +484,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                         backgroundServiceLayers : this.backgroundServiceLayers,
                         px3jsonObject : this.px3jsonObject,
                         completedCallback : this.completedCallback,
-                        backgroundServiceLayerNames : this.backgroundServiceLayerNames
+                        backgroundServiceLayerNames : this.backgroundServiceLayerNames,
+                        useTNMLayers : this.useTNMLayers,
+                        autoParseArcGISCache : this.autoParseArcGISCache
                     })
                     
                 },

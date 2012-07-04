@@ -197,8 +197,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         var layerMaxExtent, tileSize, tileOrigin, projection, title, opacity;
         var subLayerIds = '';
         var resolutions = [];
-        var useTNMLayers = params.useTNMLayers || true;
-        var autoParseArcGISCache = params.autoParseArcGISCache || true;
+        var useTNMLayers = params.useTNMLayers;
+        var autoParseArcGISCache = params.autoParseArcGISCache;
         var scales = []
         
         if (layerInfo) {
@@ -243,43 +243,53 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             }
             subLayerIds = subLayerIds.substring(0, subLayerIds.length - 1); 
         }
-        scales = scales.sort(function(a,b) { return a > b });
+        scales = scales.sort(function(a,b) {
+            return a > b
+        });
         
         var result;
         switch (this.type) {
             case 'dynamic':
                 if (useTNMLayers) {
-                    
                     result = new OpenLayers.Layer.NationalMapWMS(
                         this.displayName,
                         this.url + '/export',
                         {
-                            layers : subLayerIds
+                            layers : 'show:' + subLayerIds
                         },{
                             resolutions : resolutions,
                             scales : scales,
-                            opacity : this.opacity
+                            opacity : this.opacity,
+                            transparent: true
                         })
-                        
                 } else {
                     result = new OpenLayers.Layer.ArcGIS93Rest(
-                        his.displayName,
+                        this.displayName,
                         this.url + '/export',
                         {
-                            layers : subLayerIds,
+                            layers : 'show:' + subLayerIds,
+                            transparent: true,
+                            srs : layerInfo.spatialReference.wkid
+                        }
+                        ,{
+                            isBaseLayer : false,
+                            meta: true,
                             metadata: {
                                 layerId : this.id
                             },
-                            alwaysInRange : false,
                             opacity : this.opacity,
-                            visibility : false,
-                            singleTile : true,
-                            ratio : 1,
-                            maxExtent: layerMaxExtent,  
-                            maxResolution : 'auto',
-                            resolutions : resolutions,
-                            scales : scales
-                        })
+                            visibility : true,
+                            resolutions : resolutions.length ? resolutions : null,
+                            scales : scales,
+                            singleTile: true,
+                            transitionEffect: 'resize',
+                            displayOutsideMaxExtent: true,
+                            maxExtent: layerMaxExtent, 
+                            encodeBBOX: true,
+                            format: "png8"
+        
+                        }
+                    )
                 }
                 break;
             case 'tiled':
@@ -296,25 +306,31 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             numZoomLevels : maxZoom,
                             resolutions : resolutions,
                             scales : scales,
-                            opacity : this.opacity
+                            opacity : this.opacity,
+                            transparent: true
                         })
-                        
                 } else {
                     if (autoParseArcGISCache) {
                         result = new OpenLayers.Layer.ArcGISCache(
                             title,
-                            this.url + '/tile', 
+                            this.url, 
                             {
                                 layers : subLayerIds,
                                 layerInfo : layerInfo,
-                                scales : scales
+                                scales : scales,
+                                resolutions: resolutions,
+                                tileOrigin: tileOrigin,
+                                maxExtent: layerMaxExtent,
+                                useScales: false,
+                                overrideDPI : true
                             });
                     } else {
                         result = new OpenLayers.Layer.ArcGISCache(
                             title,
-                            this.url + '/tile', 
+                            this.url, 
                             {
                                 layers : subLayerIds,
+                                transparent : true,
                                 isBaseLayer: false,
                                 resolutions: resolutions,                        
                                 tileSize: tileSize,                        
