@@ -194,15 +194,20 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     createLayer : function(params) {
         var params = params || {};
         var layerInfo = params.parsedResponse;
-        var layerMaxExtent, tileSize, tileOrigin, projection, title, opacity;
-        var subLayerIds = '';
-        var resolutions = [];
         var useTNMLayers = params.useTNMLayers;
         var autoParseArcGISCache = params.autoParseArcGISCache;
-        var scales = []
+        var layerMaxExtent, tileSize, tileOrigin, projection, title;
+        var subLayerIds = '';
+        var scales = [], resolutions = [];
+        var minResolution, maxResolution;
+        var units = 'm';
+        var minZoom, maxZoom, numZoomLevels;
+        var result;
         
+
         if (layerInfo) {
-            
+            units = layerInfo.units.toLowerCase() === 'esridecimaldegrees' ? 'degrees' : 'm'
+
             layerMaxExtent = new OpenLayers.Bounds(
                 layerInfo.fullExtent.xmin, 
                 layerInfo.fullExtent.ymin, 
@@ -214,7 +219,6 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                 tileSize = new OpenLayers.Size(layerInfo.tileInfo.cols, layerInfo.tileInfo.rows);
                 
                 tileOrigin = new OpenLayers.LonLat(layerInfo.tileInfo.origin.x , layerInfo.tileInfo.origin.y);
-                
                 for (var lodsIndex=0; lodsIndex<layerInfo.tileInfo.lods.length; lodsIndex++) {
                     var lod = layerInfo.tileInfo.lods[lodsIndex];
                     if (scales.indexOf(lod.scale) == -1) {
@@ -230,24 +234,64 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                     
             for (var layersIdx = 0;layersIdx < layerInfo.layers.length;layersIdx++) {
                 var layer = layerInfo.layers[layersIdx];
-                var layerMaxScale = layer.maxScale || null;
-                var layerMinScale = layer.minScale || null;
-                subLayerIds += layer.id + ',';
-                if (scales.indexOf(layerMaxScale) == -1) {
-                    scales.push(layerMaxScale);
-                }
-                if (scales.indexOf(layerMinScale) == -1) {
-                    scales.push(layerMinScale);
+                var parentLayerId = layer.parentLayerId;
+                var parentLayer;
+                var layerMaxScale = layer.maxScale;
+                var layerMinScale = layer.minScale;
+                
+                while (parentLayerId != -1) {
+                    parentLayer = layerInfo.layers[parentLayerId];
+                    parentLayerId = parentLayer.parentLayerId;
                 }
                 
+                subLayerIds += layer.id + ',';
+                          
+                if (parentLayer) {
+                    layerMaxScale = layer.maxScale;
+                    layerMinScale = layer.minScale;
+                }
+                
+                if (layerMaxScale != undefined && scales.indexOf(layerMaxScale) == -1) {
+                    scales.push(layerMaxScale);
+                }
+                if (layerMinScale != undefined && scales.indexOf(layerMinScale) == -1) {
+                    scales.push(layerMinScale);
+                }
             }
+            
             subLayerIds = subLayerIds.substring(0, subLayerIds.length - 1); 
         }
+        
         scales = scales.sort(function(a,b) {
             return a > b
         });
         
-        var result;
+        if (resolutions.length == 0) {
+            resolutions = this.resolutionsFromScales(scales, 'm');
+        }
+        
+        resolutions = resolutions.sort(function(a,b) {
+            return a > b
+        });
+        
+        minResolution = resolutions[0];
+        maxResolution =  resolutions[resolutions.length - 1];
+        numZoomLevels = Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
+        
+        var options = {
+            resolutions : resolutions,
+            numZoomLevels : numZoomLevels,
+            units : units,
+            isBaseLayer : false,
+            opacity : this.opacity,
+            scales : scales,
+            minResolution : minResolution,
+            maxResolution : maxResolution,
+            maxExtent: layerMaxExtent,
+            transparent: true,
+            visibility : true,
+            projection: projection
+        }
         switch (this.type) {
             case 'dynamic':
                 if (useTNMLayers) {
@@ -256,12 +300,10 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                         this.url + '/export',
                         {
                             layers : 'show:' + subLayerIds
-                        },{
-                            resolutions : resolutions,
-                            scales : scales,
-                            opacity : this.opacity,
-                            transparent: true
-                        })
+                        },
+                        OpenLayers.Util.applyDefaults({
+                            singleTile: false
+                        }, options))
                 } else {
                     result = new OpenLayers.Layer.ArcGIS93Rest(
                         this.displayName,
@@ -270,78 +312,46 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             layers : 'show:' + subLayerIds,
                             transparent: true,
                             srs : layerInfo.spatialReference.wkid
-                        }
-                        ,{
-                            isBaseLayer : false,
-                            meta: true,
+                        },
+                        OpenLayers.Util.applyDefaults({
+                            singleTile: false,
+                            displayOutsideMaxExtent: true,
                             metadata: {
                                 layerId : this.id
-                            },
-                            opacity : this.opacity,
-                            visibility : true,
-                            resolutions : resolutions.length ? resolutions : null,
-                            scales : scales,
-                            singleTile: true,
-                            transitionEffect: 'resize',
-                            displayOutsideMaxExtent: true,
-                            maxExtent: layerMaxExtent, 
-                            encodeBBOX: true,
-                            format: "png8"
-        
-                        }
-                    )
+                            }
+                        }, options))
                 }
                 break;
             case 'tiled':
                 if (useTNMLayers) {
-                    var maxZoom = resolutions.length ? resolutions.length - 1 : OpenLayers.Layer.NationalMapTile.maxZoom;
                     result = new OpenLayers.Layer.NationalMapTile(
                         title, 
                         this.url + '/tile',
-                        {
+                        OpenLayers.Util.applyDefaults({
                             layers : subLayerIds,
-                            isBaseLayer : false,
-                            minZoom : 0,
-                            maxZoom : maxZoom,
-                            numZoomLevels : maxZoom,
-                            resolutions : resolutions,
-                            scales : scales,
-                            opacity : this.opacity,
-                            transparent: true
-                        })
+                            minZoom : 0
+                        }, options))
                 } else {
                     if (autoParseArcGISCache) {
                         result = new OpenLayers.Layer.ArcGISCache(
                             title,
                             this.url, 
-                            {
+                            OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
                                 layerInfo : layerInfo,
-                                scales : scales,
-                                resolutions: resolutions,
                                 tileOrigin: tileOrigin,
-                                maxExtent: layerMaxExtent,
                                 useScales: false,
-                                overrideDPI : true
-                            });
+                                overrideDPI : true,
+                                tileSize: tileSize
+                            }, options))
                     } else {
                         result = new OpenLayers.Layer.ArcGISCache(
                             title,
                             this.url, 
-                            {
+                            OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                transparent : true,
-                                isBaseLayer: false,
-                                resolutions: resolutions,                        
-                                tileSize: tileSize,                        
-                                tileOrigin: tileOrigin,                        
-                                maxExtent: layerMaxExtent,                        
-                                projection: projection,
-                                visibility: false,
-                                scales : scales,
-                                opacity : this.opacity
-                            }
-                            );
+                                tileSize: tileSize                       
+                            }, options))
                     }
                 }
         }
