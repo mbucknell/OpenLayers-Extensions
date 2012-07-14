@@ -1,6 +1,7 @@
 OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
+    alwaysInRange : true,
     sphericalMercator: true,
-
+    numZoomLevels : undefined,
     destroy: function() {
         if (this.map != null) {
             var l = this.options.layers;
@@ -40,7 +41,9 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         var result = 0;
         for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++){
             var layer = this.layers[layersIndex];
-            if (layer.numZoomLevels > result) result = layer.numZoomLevels;
+            var layerNumZoomLevels = layer.numZoomLevels;
+            if (!layerNumZoomLevels) layerNumZoomLevels = layer.resolutions.length;
+            if (layerNumZoomLevels > result) result = layer.numZoomLevels;
         }
         return result;  
     },
@@ -63,11 +66,8 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     toggleLayers: function() {
        	var z = this.map.getZoom();
         var l = this.options.layers;
-        var r = this.map.getResolution();
-        var removeLayer = null;
         for (var i = 0; i < l.length; i++) {
             if (l[i].minZoom <= z && l[i].maxZoom >= z) {
-//            if (r >= l[i].resolutions && r <= l[i].resolutions[l[i].resolutions.length]) {
                 if (!this.map.getLayer(l[i].id)) {
                     this.map.addLayer(l[i]);
                     l[i].setZIndex(this.getZIndex());
@@ -80,6 +80,20 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
                 }
             }
        	}
+    },
+    
+    getBounds: function() {
+        var l = this.options.layers;
+        var bounds;
+        for (var i = 0; i < l.length; i++) {
+            var layerBounds = l[i].maxExtent;
+            if (!bounds) {
+                bounds = layerBounds;
+            } else {
+                bounds.add(layerBounds);
+            }
+       	}
+        return bounds;
     },
     
     CLASS_NAME: "OpenLayers.Layer.NationalMapMulti"
