@@ -192,7 +192,21 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     },
     
     createLayer : function(params) {
-        var params = params || {};
+        params = params || {};
+        if (params.parsedResponse) {
+            return this.createLayerUsingRemoteMetadata(params);
+        } else {
+            return new OpenLayers.Layer(this.displayName, {
+                id : this.id, 
+                serviceObject : this, 
+                numZoomLevels : 0,
+                resolutions : [],
+                scales : []
+            })
+        }
+    },
+    
+    createLayerUsingRemoteMetadata : function(params) {
         var layerInfo = params.parsedResponse;
         var useTNMLayers = params.useTNMLayers;
         var autoParseArcGISCache = params.autoParseArcGISCache;
@@ -202,8 +216,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         var minResolution, maxResolution;
         var numZoomLevels;
         var result;
+        var zIndex;
         var units = 'm';
-        
 
         if (layerInfo) {
             units = layerInfo.units.toLowerCase() === 'esridecimaldegrees' ? 'degrees' : 'm'
@@ -260,23 +274,24 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             }
             
             subLayerIds = subLayerIds.substring(0, subLayerIds.length - 1); 
+            
+            scales = scales.sort(function(a,b) {
+                return a > b
+            });
+        
+            if (resolutions.length == 0) {
+                resolutions = this.resolutionsFromScales(scales[0] == 0 ? scales.slice(1) : scales, 'm');
+            }
+            
+            resolutions = resolutions.sort(function(a,b) {
+                return a > b
+            });
+            
+            minResolution = resolutions[0];
+            maxResolution =  resolutions[resolutions.length - 1];
+            numZoomLevels = Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
+            zIndex = this.drawOrder ? this.drawOrder : null;
         }
-        
-        scales = scales.sort(function(a,b) {
-            return a > b
-        });
-        
-        if (resolutions.length == 0) {
-            resolutions = this.resolutionsFromScales(scales[0] == 0 ? scales.slice(1) : scales, 'm');
-        }
-        
-        resolutions = resolutions.sort(function(a,b) {
-            return a > b
-        });
-        
-        minResolution = resolutions[0];
-        maxResolution =  resolutions[resolutions.length - 1];
-        numZoomLevels = Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
         
         var options = {
             resolutions : resolutions,
@@ -360,6 +375,11 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                     }
                 }
         }
+        
+        if (zIndex != null) {
+            result.setZIndex(zIndex);
+        }
+        
         return result;
     },
     

@@ -7,8 +7,8 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     },
     
     redraw: function() {
-        var len = this.map.layers.length;
-        var layers = this.map.layers.slice();
+        var layersLength = this.map.layers.length;
+        var layers = this.map.layers;
         
         //if the state hasn't changed since last redraw, no need 
         // to do anything. Just return the existing div.
@@ -17,76 +17,71 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         } 
 
         //clear out previous layers 
-        this.clearLayersArray("base");
         this.clearLayersArray("data");
         
         // Save state -- for checking layer if the map state changed.
         // We save this before redrawing, because in the process of redrawing
         // we will trigger more visibility changes, and we want to not redraw
         // and enter an infinite loop.
-        this.layerStates = new Array(len);
-        for (var i=0; i <len; i++) {
-            var layer = this.map.layers[i];
-            this.layerStates[i] = {
-                'name': layer.name + isMultiLayer, 
+        this.layerStates = new Array(layersLength);
+        for (var layersIndex=0; layersIndex <layersLength; layersIndex++) {
+            var layer = this.map.layers[layersIndex];
+            this.layerStates[layersIndex] = {
+                'name': layer.name, 
                 'visibility': layer.visibility,
                 'inRange': layer.inRange,
                 'id': layer.id
             };
         }    
-
-        if (!this.ascending) {
-            layers.reverse();
-        }
         
-        for(var i=0, len=layers.length; i<len; i++) {
-            layer = layers[i];
-            var isMultiLayer = layer.CLASS_NAME === 'OpenLayers.Layer.NationalMapMulti';
-
+        for(var layersIndex=0; layersIndex<layers.length; layersIndex++) {
+            layer = layers[layersIndex];
+            var isMultiLayer = layer.multiLayer;
+            var br = document.createElement("br");
+            var labelSpan = document.createElement("span");
+            var inputElem = document.createElement("input");
+            
             if (layer.displayInLayerSwitcher) {
+                if (isMultiLayer) {
+                    labelSpan.style.textDecoration = "underline";
+                } else {
+                    labelSpan.style.paddingLeft = '20px';
+                    if (!layer.inRange) {
+                        labelSpan.style.color = "gray";
+                        inputElem.disabled = true;
+                    }
+                }
+                
                 // We can check this if the layer type is multilayer or if the 
                 // layer has visibility
-                var checked = isMultiLayer || layer.getVisibility();
+                var checked = (isMultiLayer && layer.getVisibility()) || layer.getVisibility();
     
-                // create input element
-                var inputElem = document.createElement("input");
-                inputElem.id = this.id + "_input_" + layer.name;
-                inputElem.name = (isMultiLayer) ? this.id + "_baseLayers" : layer.name;
-                inputElem.type = "checkbox";
+                inputElem.id = this.id + "_input_" + layer.id;
+                inputElem.name = layer.id;
                 inputElem.value = layer.name;
+                inputElem.type = "checkbox";
                 inputElem.checked = checked;
                 inputElem.defaultChecked = checked;
-
-                if (!isMultiLayer && !layer.inRange) {
-                    inputElem.disabled = true;
-                }
+                labelSpan.innerHTML = layer.name;
+                labelSpan.style.verticalAlign = "baseline";
+                
                 var context = {
                     'inputElem': inputElem,
                     'layer': layer,
                     'layerSwitcher': this
                 };
+                
                 OpenLayers.Event.observe(inputElem, "mouseup", 
                     OpenLayers.Function.bindAsEventListener(this.onInputClick,
                         context)
                     );
-                
-                // create span
-                var labelSpan = document.createElement("span");
-                OpenLayers.Element.addClass(labelSpan, "labelSpan");
-                if (!isMultiLayer && !layer.inRange) {
-                    labelSpan.style.color = "gray";
-                }
-                labelSpan.innerHTML = layer.name + (isMultiLayer ? " (ServiceGroup)" : "");
-                labelSpan.style.verticalAlign = (isMultiLayer) ? "bottom"  : "baseline";
-                if (isMultiLayer) {
-                    labelSpan.style.textDecoration = "underline";
-                }
+                        
                 OpenLayers.Event.observe(labelSpan, "click", 
                     OpenLayers.Function.bindAsEventListener(this.onInputClick,
                         context)
                     );
-                // create line break
-                var br = document.createElement("br");
+                
+                OpenLayers.Element.addClass(labelSpan, "labelSpan");
                 
                 var groupArray = this.dataLayers;
                 groupArray.push({
@@ -94,21 +89,17 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                     'inputElem': inputElem,
                     'labelSpan': labelSpan
                 });
-                                                     
-    
+                                      
+                var subGroupSpan = document.createElement("span");
+                subGroupSpan.appendChild(inputElem)
+                subGroupSpan.appendChild(labelSpan)
+                subGroupSpan.appendChild(br)
+                
                 var groupDiv = this.dataLayersDiv;
-                groupDiv.appendChild(inputElem);
-                groupDiv.appendChild(labelSpan);
-                groupDiv.appendChild(br);
+                groupDiv.appendChild(subGroupSpan);
             }
         }
-
-        // if no overlays, dont display the overlay label
-        this.dataLbl.style.display = "";        
         
-        // if no baselayers, dont display the baselayer label
-        this.baseLbl.style.display = "none";        
-
         return this.div;
     },
     
@@ -123,13 +114,6 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.layersDiv = document.createElement("div");
         this.layersDiv.id = this.id + "_layersDiv";
         OpenLayers.Element.addClass(this.layersDiv, "layersDiv");
-
-        this.baseLbl = document.createElement("div");
-        this.baseLbl.innerHTML = OpenLayers.i18n("Base Layer");
-        OpenLayers.Element.addClass(this.baseLbl, "baseLbl");
-        
-        this.baseLayersDiv = document.createElement("div");
-        OpenLayers.Element.addClass(this.baseLayersDiv, "baseLayersDiv");
 
         this.dataLbl = document.createElement("div");
         this.dataLbl.innerHTML = OpenLayers.i18n("Service Groups");
@@ -190,16 +174,28 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.div.appendChild(this.minimizeDiv);
     },
     
-    onInputClick: function(e) {
+    onInputClick: function(event) {
         if (!this.inputElem.disabled) {
             this.inputElem.checked = !this.inputElem.checked;
-            this.layerSwitcher.updateMap();
+            this.layerSwitcher.updateMap(
+                // Not used for now
+                //            {
+                //                event : event,
+                //                layer : this.layer,
+                //                checked : this.inputElem.checked
+                //            }
+                );
         }
-        OpenLayers.Event.stop(e);
+        OpenLayers.Event.stop(event);
     },
     
-    updateMap: function() {
+    updateMap: function(params) {
+        // Not used for now
+        //        var event = params.event || null;
+        //        var layer = params.layer || null;
+        //        var checked = params.checked || null;
         var parentMultiLayerChecked = true;
+        
         for(var i=0, len=this.dataLayers.length; i<len; i++) {
             var layerEntry = this.dataLayers[i]; 
             if (layerEntry.layer.multiLayer) {
