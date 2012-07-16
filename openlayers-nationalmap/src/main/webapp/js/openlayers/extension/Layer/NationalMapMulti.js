@@ -1,8 +1,15 @@
 OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
+    
     alwaysInRange : true,
+    
     sphericalMercator: true,
+    
     numZoomLevels : undefined,
+    
     multiLayer : true,
+    
+    initialOn : false,
+    
     destroy: function() {
         if (this.map != null) {
             var l = this.options.layers;
@@ -15,7 +22,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     
     setMap: function(map) {
         OpenLayers.Layer.prototype.setMap.apply(this, arguments);
-        this.toggleLayers()
+        this.toggleLayers();
     },
 
     moveTo:function(bounds, zoomChanged, dragging) {
@@ -40,7 +47,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         }
         return result.sort(function(a,b){
             return a > b
-            }); 
+        }); 
     },
     
     getNumZoomLevels : function() {
@@ -70,22 +77,34 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     },
     
     toggleLayers: function() {
-        var z = this.map.getZoom();
-        var l = this.options.layers;
-        for (var i = 0; i < l.length; i++) {
-            if (l[i].minZoom <= z && l[i].maxZoom >= z) {
-                if (!this.map.getLayer(l[i].id)) {
-                    this.map.addLayer(l[i]);
-                    l[i].setZIndex(this.getZIndex());
-                } else {
-                    l[i].setVisibility(true);
-                }
+        var mapZoom = this.map.getZoom();
+        var layers = this.layers;
+        
+        this.setMapTemp = this.setMap;
+        this.setMap = OpenLayers.Layer.setMap//function(map) {OpenLayers.Layer.prototype.setMap.apply(this, arguments)};
+                    
+        for (var layersIndex = 0; layersIndex < layers.length; layersIndex++) {
+            var layer = layers[layersIndex];
+            var mapLayer = this.map.getLayer(layer.id);
+            
+            if (!mapLayer) {
+                this.map.addLayer(layer);
+                layer.setZIndex(this.getZIndex());
+                mapLayer = this.map.getLayer(layer.id);
+            }
+            
+            if (layer.minZoom <= mapZoom && layer.maxZoom >= mapZoom) {
+                mapLayer.setVisibility(true);
             } else {
-                if (this.map.getLayer(l[i].id)) {
-                    l[i].setVisibility(false);
+                if (this.map.getLayer(layer.id)) {
+                mapLayer.setVisibility(false);
                 }
             }
+            
         }
+        
+        this.setMap = this.setMapTemp;
+        delete this.setMapTemp;
     },
     
     getBounds: function() {

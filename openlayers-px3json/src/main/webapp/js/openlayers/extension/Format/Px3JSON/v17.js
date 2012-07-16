@@ -367,21 +367,41 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         var serviceGroup = params.serviceGroup;
         var serviceGroupId = serviceGroup.serviceGroupId || serviceGroup.id;
         var layerNames = this.serviceGroups[serviceGroupId].serviceIds;
+        var displayName = serviceGroup.displayName;
         var layers = [], scales = [];
         var multiLayer;
+        var initialOnIds = this.serviceGroups.initialOn.serviceIds || [];
+        var isBackgroundMapGroup = false;
+        var initialOn = false;
+        
+        for (var backgroundMapIndex = 0;!isBackgroundMapGroup && backgroundMapIndex < this.mapConfig.backgroundMaps.length;backgroundMapIndex++) {
+            if (this.mapConfig.backgroundMaps[backgroundMapIndex].serviceGroupId === serviceGroupId) {
+                isBackgroundMapGroup = true;
+            }
+        }
+        
+        if (!displayName) {
+            for (var overlayGroupIndex = 0;overlayGroupIndex < this.layoutConfig.overlayGroups.length;overlayGroupIndex++) {
+                if (this.layoutConfig.overlayGroups[overlayGroupIndex].serviceGroupId === serviceGroupId) {
+                    displayName = this.layoutConfig.overlayGroups[overlayGroupIndex].displayName;
+                }
+            }
+        }
                 
         for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
-            layers.push(serviceLayers[layerNames[layerNamesIdx]]);
+            var layer = serviceLayers[layerNames[layerNamesIdx]];
+            layers.push(layer);
+            if (layer.initialOn) initialOn = true;
         }
                 
         multiLayer = new OpenLayers.Layer.NationalMapMulti(
-            serviceGroup.displayName,
+            displayName,
             {
                 layers : layers,
                 isBaseLayer : false,
-                alwaysInRange : true
-            }
-            )
+                alwaysInRange : true,
+                initialOn : isBackgroundMapGroup || initialOn
+            })
                         
         scales = multiLayer.getScales();
         for (var serviceLayersIdx = 0;serviceLayersIdx < layers.length;serviceLayersIdx++) {
@@ -402,6 +422,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         }
         
         multiLayer.numZoomLevels = multiLayer.getNumZoomLevels();
+        
         
         return multiLayer;
     },
@@ -472,18 +493,23 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
             // In our case, the layer switcher, when seeing a dummy layer, will then
             // create the actual layer using remote calls
             for (var serviceGroupName in this.serviceGroups) {
-                if (backgroundServiceGroupIds.indexOf(serviceGroupName) == -1) {
+                if (backgroundServiceGroupIds.indexOf(serviceGroupName) == -1 && serviceGroupName !== 'initialOn') {
                     var serviceIds = this.serviceGroups[serviceGroupName].serviceIds;
                     var serviceLayers = {};
+                    
                     for (var serviceIdsIndex = 0;serviceIdsIndex < serviceIds.length;serviceIdsIndex++) {
                         var service = this.services[serviceIds[serviceIdsIndex]];
                         var layer = service.createLayer();
-                        serviceLayers[layer.id] = layer;
+                        serviceLayers[layer.serviceObject.id] = layer;
                     }
-                    multiLayerArray.push(this.createNationalMapMultiLayersObject({
-                        serviceLayers : serviceLayers,
-                        serviceGroup : this.serviceGroups[serviceGroupName]
-                    }));
+                    
+                    multiLayerArray.push(
+                        this.createNationalMapMultiLayersObject({
+                            serviceLayers : serviceLayers,
+                            serviceGroup : this.serviceGroups[serviceGroupName]
+                        })
+                        );
+                    
                 }
             }
         
