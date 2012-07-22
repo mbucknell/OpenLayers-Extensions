@@ -6,6 +6,38 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         OpenLayers.Control.LayerSwitcher.prototype.initialize.apply(this, arguments);
     },
     
+    maximizeControl: function(e) {
+
+        // set the div's width and height to empty values, so
+        // the div dimensions can be controlled by CSS
+        this.div.style.overflow = "auto";
+        this.div.style.width = "500px";
+        this.div.style.height = this.map.size.h - 40 + 'px';
+        
+        this.showControls(false);
+        
+        if (e != null) {
+            OpenLayers.Event.stop(e);                                            
+        }
+    },
+    
+    minimizeControl: function(e) {
+
+        // to minimize the control we set its div's width
+        // and height to 0px, we cannot just set "display"
+        // to "none" because it would hide the maximize
+        // div
+        this.div.style.overflow = "visible";
+        this.div.style.width = "0px";
+        this.div.style.height = "0px";
+        
+        this.showControls(true);
+
+        if (e != null) {
+            OpenLayers.Event.stop(e);                                            
+        }
+    },
+    
     redraw: function() {
         var layersLength = this.map.layers.length;
         var layers = this.map.layers;
@@ -34,7 +66,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
             };
         }    
         
-        for(var layersIndex=0; layersIndex<layers.length; layersIndex++) {
+        for(layersIndex=0; layersIndex<layers.length; layersIndex++) {
             layer = layers[layersIndex];
             var isMultiLayer = layer.multiLayer;
             var br = document.createElement("br");
@@ -42,11 +74,15 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
             var inputElem = document.createElement("input");
             
             if (layer.displayInLayerSwitcher) {
+                // We differentiate multilayer sets by underlining 
+                // the text. Otherwise, we pad out the text
                 if (isMultiLayer) {
                     labelSpan.style.textDecoration = "underline";
                 } else {
                     labelSpan.style.paddingLeft = '20px';
                     if (!layer.inRange) {
+                        // While the layer is not in range, 
+                        // we disable it visually
                         labelSpan.style.color = "gray";
                         inputElem.disabled = true;
                     }
@@ -104,6 +140,9 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     },
     
     loadContents: function() {
+        var sz = new OpenLayers.Size(18,18); 
+        var imgLocation = OpenLayers.Util.getImagesLocation();
+        
         //configure main div
         OpenLayers.Event.observe(this.div, "mouseup", OpenLayers.Function.bindAsEventListener(this.mouseUp, this));
         OpenLayers.Event.observe(this.div, "click", this.ignoreEvent);
@@ -126,7 +165,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.layersDiv.appendChild(this.dataLayersDiv);
  
         this.div.appendChild(this.layersDiv);
-
+        
         if(this.roundedCorner) {
             OpenLayers.Rico.Corner.round(this.div, {
                 corners: "tl bl",
@@ -136,9 +175,6 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
             });
             OpenLayers.Rico.Corner.changeOpacity(this.layersDiv, 0.75);
         }
-
-        var imgLocation = OpenLayers.Util.getImagesLocation();
-        var sz = new OpenLayers.Size(18,18);        
 
         // maximize button div
         var img = imgLocation + 'layer-switcher-maximize.png';
@@ -157,8 +193,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.div.appendChild(this.maximizeDiv);
 
         // minimize button div
-        var img = imgLocation + 'layer-switcher-minimize.png';
-        var sz = new OpenLayers.Size(18,18);        
+        img = imgLocation + 'layer-switcher-minimize.png';
         this.minimizeDiv = OpenLayers.Util.createAlphaImageDiv(
             "OpenLayers_Control_MinimizeDiv", 
             null, 
@@ -177,33 +212,82 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     onInputClick: function(event) {
         if (!this.inputElem.disabled) {
             this.inputElem.checked = !this.inputElem.checked;
-            this.layerSwitcher.updateMap(
-                // Not used for now
-                //            {
-                //                event : event,
-                //                layer : this.layer,
-                //                checked : this.inputElem.checked
-                //            }
-                );
+            var layerId = this.inputElem.id.substring(this.inputElem.id.lastIndexOf('_input_') + 7);
+            if (this.layer.CLASS_NAME === 'OpenLayers.Layer') {
+                this.layer.serviceObject.getRemoteLayerInfo({
+                    serviceObject : this.layer.serviceObject,
+                    scope : {
+                        useTNMLayers : false,
+                        autoParseArcGISCache : true,
+                        serviceObject : this.layer.serviceObject,
+                        layerSwitcher : this.layerSwitcher,
+                        layerId : layerId,
+                        callbacks : [
+                        function(params) {
+                            params.scope.layerSwitcher.replaceLayer({
+                                layer : params.layer,
+                                event : event,
+                                layerId : params.scope.layerId
+                            })
+                        }
+                        ]
+                    }
+                })
+            } else {
+                this.layerSwitcher.updateMap();
+            }
         }
-        OpenLayers.Event.stop(event);
     },
     
-    updateMap: function(params) {
-        // Not used for now
-        //        var event = params.event || null;
-        //        var layer = params.layer || null;
-        //        var checked = params.checked || null;
+    updateMap: function() {
         var parentMultiLayerChecked = true;
         
         for(var i=0, len=this.dataLayers.length; i<len; i++) {
             var layerEntry = this.dataLayers[i]; 
+            
             if (layerEntry.layer.multiLayer) {
                 parentMultiLayerChecked = layerEntry.inputElem.checked;
-                layerEntry.layer.setVisibility(layerEntry.inputElem.checked);
-                layerEntry.inputElem.checked = layerEntry.inputElem.checked;
+                layerEntry.layer.setVisibility(parentMultiLayerChecked);
+                layerEntry.inputElem.checked = parentMultiLayerChecked;
             } else {
                 layerEntry.layer.setVisibility(parentMultiLayerChecked && layerEntry.inputElem.checked);
+            }
+            
+            this.layerStates[i] = {
+                id : layerEntry.layer.id,
+                inRange : layerEntry.layer.calculateInRange(),
+                name : layerEntry.layer.name,
+                visibility : layerEntry.layer.getVisibility()
+            }
+            
+        }
+    },
+    
+    replaceLayer : function(params) {
+        var layer = params.layer;
+        var map = this.map;
+        var outgoingLayerId = params.layerId;
+        
+        // The map object has multilayers and it has the regular layers that were 
+        // inside the multilayers. We want to replace the layer in both places
+        for (var mapLayerIndex = 0;mapLayerIndex < map.layers.length;mapLayerIndex++) {
+            var mapLayer = map.layers[mapLayerIndex];
+            if (mapLayer.CLASS_NAME === 'OpenLayers.Layer.NationalMapMulti') {
+                
+                // If the layer exists in this multilayer object, it will be 
+                // replaced. Otherwise, nothing happens
+                var layerIndex = mapLayer.containsLayer('name', layer.name);
+                if (layerIndex != -1) {
+                    this.map.removeLayer(this.map.getLayer(mapLayer.id));
+                    this.map.removeLayer(this.map.getLayer(outgoingLayerId));
+                    
+                    mapLayer.replaceLayer(layer);
+                    this.layerStates.splice(mapLayerIndex, 1); 
+                    
+                    this.map.addLayer(mapLayer);
+                    this.map.setLayerIndex(mapLayer, mapLayerIndex);
+                    this.map.setLayerIndex(layer, mapLayerIndex + 1 + layerIndex);
+                }
             }
         }
     }

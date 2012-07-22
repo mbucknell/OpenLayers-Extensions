@@ -76,12 +76,41 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         return result;  
     },
     
+    containsLayer : function(property, value) {
+        for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++) {
+            var layer = this.layers[layersIndex];
+            if (layer[property] === value) {
+                return layersIndex;
+            }
+        }
+        return -1;
+    },
+    
+    getlayer : function(layer) {
+        var layerIndex = this.containsLayer('id', layer.id);
+        if (layerIndex != -1) {
+            return this.layers[layerIndex];
+        }
+        return null;
+    },
+    
+    replaceLayer : function(layer) {
+        for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++) {
+            var existingLayer = this.layers[layersIndex];
+            if (existingLayer.name === layer.name) {
+                this.layers[layersIndex] = layer;
+                return true;
+            }
+        }
+        return false;
+    },
+    
     toggleLayers: function() {
         var mapZoom = this.map.getZoom();
         var layers = this.layers;
         
         this.setMapTemp = this.setMap;
-        this.setMap = OpenLayers.Layer.setMap//function(map) {OpenLayers.Layer.prototype.setMap.apply(this, arguments)};
+        this.setMap = OpenLayers.Layer.setMap
                     
         for (var layersIndex = 0; layersIndex < layers.length; layersIndex++) {
             var layer = layers[layersIndex];

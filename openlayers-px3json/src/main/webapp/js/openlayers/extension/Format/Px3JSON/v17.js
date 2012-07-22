@@ -529,7 +529,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
             
             // Pull the service object for that layer 
             var serviceObject = this.services[backgroundServiceLayerName];
-        
+            
+            
+            
             // Based on that layer's URL, we pull info for that 
             // layer from the remote server
             OpenLayers.Request.GET({
@@ -583,6 +585,8 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         }
     
     },
+    
+    
     
     createServiceLayers : function(params) {
         var result = {};

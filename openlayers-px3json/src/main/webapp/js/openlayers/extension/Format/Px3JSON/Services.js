@@ -191,6 +191,41 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         return new OpenLayers.Format.Px3JSON.Services(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
     },
     
+    getRemoteLayerInfo : function(params) {
+        OpenLayers.Request.GET({
+            url: params.serviceObject.url + '/?f=json&pretty=true',
+            scope: params.scope,
+            success: function(request) {
+                var doc = request.responseXML;
+                if (!doc || !doc.documentElement) {
+                    doc = request.responseText;
+                }
+                var parsedResponse = (new OpenLayers.Format.JSON).read(doc);
+                
+                // We now have the remote metadata for this layer. Let's create that layer
+                var layer = this.serviceObject.createLayer({
+                    parsedResponse : parsedResponse,
+                    serviceObject : this.serviceObject,
+                    useTNMLayers : this.useTNMLayers,
+                    autoParseArcGISCache : this.autoParseArcGISCache
+                })
+                    
+                for (var callbackIndex = 0;callbackIndex < this.callbacks.length;callbackIndex++) {
+                    var callback = this.callbacks[callbackIndex];
+                    callback({
+                        layer : layer,
+                        scope : this
+                    })
+                }
+                    
+            },
+            failure : function(response, options) {
+                // I've not yet decided how to handle failed responses
+                console.log("Layer could not be created");
+            }
+        });
+    },
+    
     createLayer : function(params) {
         params = params || {};
         if (params.parsedResponse) {
@@ -249,7 +284,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             
             projection = 'EPSG:' + layerInfo.spatialReference.wkid;
             
-            title = layerInfo.documentInfo.Title;
+            title = params.serviceObject.displayName;
                     
             for (var layersIdx = 0;layersIdx < layerInfo.layers.length;layersIdx++) {
                 var layer = layerInfo.layers[layersIdx];
@@ -294,7 +329,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             
             minResolution = resolutions[0];
             maxResolution =  resolutions[resolutions.length - 1];
-            numZoomLevels = Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
+            numZoomLevels = resolutions.length;//Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
             zIndex = this.drawOrder ? this.drawOrder : null;
         }
         
@@ -339,7 +374,9 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             displayOutsideMaxExtent: true,
                             metadata: {
                                 layerId : this.id
-                            }
+                            },
+                            layers : 'show:' + subLayerIds,
+                            srs : layerInfo.spatialReference.wkid
                         }, options))
                 }
                 break;
@@ -362,8 +399,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                                 layerInfo : layerInfo,
                                 tileOrigin: tileOrigin,
                                 useScales: false,
-                                overrideDPI : true,
-                                tileSize: tileSize
+                                tileSize: tileSize,
+                                visibility : true
                             }, options))
                     } else {
                         result = new OpenLayers.Layer.ArcGISCache(
@@ -374,8 +411,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                                 layerInfo : layerInfo,
                                 tileOrigin: tileOrigin,
                                 useScales: false,
-                                overrideDPI : true,
-                                tileSize: tileSize
+                                tileSize: tileSize,
+                                visibility : true
                             }, options))
                     }
                 }
