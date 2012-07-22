@@ -95,14 +95,40 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     },
     
     replaceLayer : function(layer) {
+        var layerReplaced = false;
         for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++) {
             var existingLayer = this.layers[layersIndex];
             if (existingLayer.name === layer.name) {
                 this.layers[layersIndex] = layer;
-                return true;
+                layerReplaced = true;
             }
         }
-        return false;
+        
+        this.reinitializeScales();
+        
+        this.numZoomLevels = this.getNumZoomLevels();
+        
+        return layerReplaced;
+    },
+    
+    reinitializeScales : function() {
+        var scales = this.getScales();
+        for (var serviceLayersIdx = 0;serviceLayersIdx < this.layers.length;serviceLayersIdx++) {
+            var serviceLayer = this.layers[serviceLayersIdx];
+            if (!serviceLayer) {
+                var a= 1;
+            }
+            if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
+                var minScale = serviceLayer.scales[0]
+                var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
+                var minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
+                var maxZoom = scales.indexOf(maxScale);
+                this.layers[serviceLayersIdx].minZoom = minZoom;
+                this.layers[serviceLayersIdx].maxZoom = maxZoom;
+                this.layers[serviceLayersIdx].minScale = minScale;
+                this.layers[serviceLayersIdx].maxScale = maxScale;
+            }
+        }
     },
     
     toggleLayers: function() {

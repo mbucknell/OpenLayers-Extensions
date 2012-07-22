@@ -403,23 +403,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                 initialOn : isBackgroundMapGroup || initialOn
             })
                         
-        scales = multiLayer.getScales();
-        for (var serviceLayersIdx = 0;serviceLayersIdx < layers.length;serviceLayersIdx++) {
-            var serviceLayer = layers[serviceLayersIdx];
-            if (!serviceLayer) {
-                var a= 1;
-            }
-            if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
-                var minScale = serviceLayer.scales[0]
-                var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
-                var minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
-                var maxZoom = scales.indexOf(maxScale);
-                multiLayer.layers[serviceLayersIdx].minZoom = minZoom;
-                multiLayer.layers[serviceLayersIdx].maxZoom = maxZoom;
-                multiLayer.layers[serviceLayersIdx].minScale = minScale;
-                multiLayer.layers[serviceLayersIdx].maxScale = maxScale;
-            }
-        }
+        multiLayer.reinitializeScales()
         
         multiLayer.numZoomLevels = multiLayer.getNumZoomLevels();
         

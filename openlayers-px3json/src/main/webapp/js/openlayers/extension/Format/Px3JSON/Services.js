@@ -386,8 +386,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                         title, 
                         this.url + '/tile',
                         OpenLayers.Util.applyDefaults({
-                            layers : subLayerIds,
-                            minZoom : 0
+                            layers : subLayerIds
                         }, options))
                 } else {
                     if (autoParseArcGISCache) {
