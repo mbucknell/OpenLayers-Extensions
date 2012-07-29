@@ -1,6 +1,8 @@
 
 OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.LayerSwitcher, {
     
+    checkState : {},
+    
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
         OpenLayers.Control.LayerSwitcher.prototype.initialize.apply(this, arguments);
@@ -29,6 +31,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.layersDiv.style.display = minimize ? "none" : "";
         
         if (this.layersDiv.style.display !== "none") {
+            
             // Because of the size of the list of layers, layersDiv needs 
             // to be resized
             var layersDiv = document.getElementsByClassName('layersDiv')[0];  
@@ -42,6 +45,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         
                 layersDiv.style.height = height  + 'px';
             }
+            
         }
     },
     
@@ -80,7 +84,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         // will trigger more visibility changes, and we want to not redraw
         // and enter an infinite loop.
         this.layerStates = new Array(layersLength);
-        for (var layersIndex=0; layersIndex <layersLength; layersIndex++) {
+        for (var layersIndex=0; layersIndex < layersLength; layersIndex++) {
             var layer = this.map.layers[layersIndex];
             this.layerStates[layersIndex] = {
                 'name': layer.name, 
@@ -90,7 +94,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
             };
         }    
         
-        for(layersIndex=0; layersIndex<layers.length; layersIndex++) {
+        for(layersIndex=0; layersIndex< layersLength; layersIndex++) {
             layer = layers[layersIndex];
             var isMultiLayer = layer.multiLayer;
             var br = document.createElement("br");
@@ -112,44 +116,97 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                     }
                 }
                 
-                // We can check this if the layer type is multilayer or if the 
-                // layer has visibility
-                var checked = layer.getVisibility();
+                // Check this if the layer type is multilayer or if the layer has visibility
+                var checked;
+                if (this.checkState[layer.id] != undefined) {
+                    checked = this.checkState[layer.id];
+                } else {
+                    checked = layer.getVisibility();
+                    this.checkState[layer.id] = true;
+                }
+                var labelText = layer.name;
+
+                if (layer.CLASS_NAME === "OpenLayers.Layer") {
+                    labelText += '<br /><span class="sublayer-name" style="padding-left:50px;color:gray">Layer Not Yet Loaded</span>'
+                    layer.setVisibility(false);
+                    checked = false;
+                    this.checkState[layer.id] = false;
+                } else if (layer.layerInfo && layer.layerInfo.layers) {
+                    var layerInfoLayers = layer.layerInfo.layers;
+                    for (var layerInfoLayersIndex = 0;layerInfoLayersIndex < layerInfoLayers.length;layerInfoLayersIndex++) {
+                        var subLayer = layerInfoLayers[layerInfoLayersIndex];
+                        var minScale = subLayer.minScale || 0;
+                        var maxScale = subLayer.maxScale || 0;
+                        var currentScale = this.map.getScale();
+                        var parentLayerId = subLayer.parentLayerId;
+                        var padding = 50;
+                        if (parentLayerId != -1) {
+                            padding += 10;
+                        } 
+                        
+                        var colorStyle = 'color:gray';
+                        if (minScale + maxScale > 0) {
+                            // Check that the sublayer is displayed on the map. The server
+                            // controls whether that's the case or not
+                            if (minScale >= currentScale && maxScale <= currentScale) {
+                                colorStyle = 'color:white';
+                            }
+                        } else {
+                            // Some sub layers will have a maxScale and minScale of 0. 
+                            // This means we base their active/inactive display based on 
+                            // the visibility of their parent layer
+                            var parentLayer;
+                            if (parentLayerId != -1) {
+                                // This sublayer has a parent layer that is also a sublayer, 
+                                // get its visibility
+                                parentLayer = layerInfoLayers[parentLayerId];
+                                if (parentLayer.minScale >= currentScale && parentLayer.maxScale <= currentScale) {
+                                    colorStyle = 'color:white';
+                                }
+                            } else {
+                                // The parent layer in this case is an actual layr
+                                if (layer.calculateInRange()) {
+                                    colorStyle = 'color:white';
+                                }
+                            }
+                        }
+                        labelText += '<br /><span class="sublayer-name" style="padding-left:'+padding+'px;'+colorStyle+'">'+subLayer.name+'</span>'
+                    }
+                }
                 
                 inputElem.id = this.id + "_input_" + layer.id;
                 inputElem.name = layer.id;
                 inputElem.value = layer.name;
                 inputElem.type = "checkbox";
-                inputElem.checked = checked;
-                inputElem.defaultChecked = checked;
-                labelSpan.innerHTML = layer.name;
+                inputElem.checked = (this.checkState[layer.id] != undefined && this.checkState[layer.id]) || checked;
+                labelSpan.innerHTML = labelText;
                 labelSpan.style.verticalAlign = "baseline";
                 
                 var context = {
                     'inputElem': inputElem,
                     'layer': layer,
-                    'layerSwitcher': this
+                    'layerSwitcher': this,
+                    'checkState' : this.checkState
                 };
                 
-                OpenLayers.Event.observe(inputElem, "mouseup", 
-                    OpenLayers.Function.bindAsEventListener(this.onInputClick,
-                        context)
+                OpenLayers.Event.observe(inputElem, 
+                    "mouseup", 
+                    OpenLayers.Function.bindAsEventListener(this.onInputClick, context)
                     );
                         
-                OpenLayers.Event.observe(labelSpan, "click", 
-                    OpenLayers.Function.bindAsEventListener(this.onInputClick,
-                        context)
+                OpenLayers.Event.observe(labelSpan, 
+                    "click", 
+                    OpenLayers.Function.bindAsEventListener(this.onInputClick, context)
                     );
                 
                 OpenLayers.Element.addClass(labelSpan, "labelSpan");
-                
-                var groupArray = this.dataLayers;
-                groupArray.push({
+                             
+                this.dataLayers.push({
                     'layer': layer,
                     'inputElem': inputElem,
                     'labelSpan': labelSpan
-                });
-                                      
+                })
+                             
                 var subGroupSpan = document.createElement("span");
                 subGroupSpan.appendChild(inputElem)
                 subGroupSpan.appendChild(labelSpan)
@@ -241,6 +298,8 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
             // Figure out the layer id from the input element div id 
             var layerId = this.inputElem.id.substring(this.inputElem.id.lastIndexOf('_input_') + 7);
             
+            this.checkState[layerId] = this.inputElem.checked;
+            
             if (this.layer.CLASS_NAME === 'OpenLayers.Layer') {
                 // This layer is not yet initialized so grab the remote info 
                 // and initialize it
@@ -271,30 +330,43 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         OpenLayers.Event.stop(event);
     },
     
+    multiLayerToggled: function(event) {
+        if (event.layer.CLASS_NAME !== 'OpenLayers.Layer') {
+            var layer = event.layer;
+            if (layer.getVisibility() && !this.checkState[layer.id]) {
+                layer.setVisibility(false);
+            }
+        }
+    },
+    
     updateMap: function() {
         var parentMultiLayerChecked = true;
         
         // Check the visibility of every layer and set it accordingly
         for(var dataLayersIndex = 0, len=this.dataLayers.length; dataLayersIndex<len; dataLayersIndex++) {
             var layerEntry = this.dataLayers[dataLayersIndex]; 
+            var layer = layerEntry.layer;
             
-            if (layerEntry.layer.multiLayer) {
+            if (layer.multiLayer) {
                 // A multilayer should always be the first layer with all its own
                 // layers following
                 parentMultiLayerChecked = layerEntry.inputElem.checked;
-                layerEntry.layer.setVisibility(parentMultiLayerChecked);
+                layer.setVisibility(parentMultiLayerChecked);
+                // Listen to the multilayer's toggle event
+                layer.events.unregister("layers_toggled", this, this.multiLayerToggled);
+                layer.events.register("layers_toggled", this, this.multiLayerToggled);
             } else {
                 // If the parent layer is checked and the layer element is also checked,
                 // this layer should be visible
-                layerEntry.layer.setVisibility(parentMultiLayerChecked && layerEntry.inputElem.checked);
+                layer.setVisibility(parentMultiLayerChecked && (layerEntry.inputElem.checked || this.checkState[layer.id]));
             }
             
             // Update the layer states for this layer 
             this.layerStates[dataLayersIndex] = {
-                id : layerEntry.layer.id,
-                inRange : layerEntry.layer.alwaysInRange || layerEntry.layer.calculateInRange(),
-                name : layerEntry.layer.name,
-                visibility : layerEntry.layer.getVisibility()
+                id : layer.id,
+                inRange : layer.alwaysInRange || layer.calculateInRange(),
+                name : layer.name,
+                visibility : layer.getVisibility()
             }
             
         }
@@ -342,6 +414,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 }
             }
         }
+        this.showControls(false);
     }
     
 // If including our own class name, we have to copy the CSS rules for 

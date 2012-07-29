@@ -250,7 +250,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         var layerInfo = params.parsedResponse;
         var useTNMLayers = params.useTNMLayers;
         var autoParseArcGISCache = params.autoParseArcGISCache;
-        var layerMaxExtent, tileSize, tileOrigin, projection, title;
+        var alwaysInRange = false;
+        var layerMaxExtent, tileOrigin, projection, title;
         var subLayerIds = '';
         var scales = [], resolutions = [];
         var minResolution, maxResolution;
@@ -258,6 +259,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         var result;
         var zIndex;
         var units = 'm';
+        var tileSize = new OpenLayers.Size(256, 256);
 
         if (layerInfo) {
             units = layerInfo.units.toLowerCase() === 'esridecimaldegrees' ? 'degrees' : 'm'
@@ -327,9 +329,10 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                 return a > b
             });
             
-            minResolution = resolutions[0];
             maxResolution =  resolutions[resolutions.length - 1];
+            minResolution = resolutions[0];
             numZoomLevels = resolutions.length;
+            alwaysInRange = scales.length == 1 && scales[0] == 0;
             zIndex = this.drawOrder ? this.drawOrder : null;
         }
         
@@ -345,7 +348,11 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             maxExtent: layerMaxExtent,
             transparent: true,
             visibility : true,
-            projection: projection
+            projection: projection,
+            tileSize : tileSize,
+            layerInfo : layerInfo,
+            serviceObject : params.serviceObject,
+            alwaysInRange : alwaysInRange
         }
         
         switch (this.type) {
@@ -395,11 +402,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             this.url, 
                             OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                layerInfo : layerInfo,
                                 tileOrigin: tileOrigin,
-                                useScales: false,
-                                tileSize: tileSize,
-                                visibility : true
+                                useScales: false
                             }, options))
                     } else {
                         result = new OpenLayers.Layer.ArcGISCache(
@@ -407,11 +411,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             this.url, 
                             OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                layerInfo : layerInfo,
                                 tileOrigin: tileOrigin,
-                                useScales: false,
-                                tileSize: tileSize,
-                                visibility : true
+                                useScales: false
                             }, options))
                     }
                 }
