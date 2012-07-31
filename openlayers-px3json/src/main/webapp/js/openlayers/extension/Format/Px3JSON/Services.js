@@ -277,7 +277,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                 tileOrigin = new OpenLayers.LonLat(layerInfo.tileInfo.origin.x , layerInfo.tileInfo.origin.y);
                 for (var lodsIndex=0; lodsIndex<layerInfo.tileInfo.lods.length; lodsIndex++) {
                     var lod = layerInfo.tileInfo.lods[lodsIndex];
-                    if (scales.indexOf(lod.scale) == -1) {
+                    if (scales.indexOf(lod.scale) == -1 && lod.scale != 0) {
                         scales.push(lod.scale);
                     }
                     resolutions.push(lod.resolution);
@@ -287,33 +287,54 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             projection = 'EPSG:' + layerInfo.spatialReference.wkid;
             
             title = params.serviceObject.displayName;
-                    
+            
+            // We must do a second pass (maybe?) through the layers in order to properly set minscale
+            // and maxscale
             for (var layersIdx = 0;layersIdx < layerInfo.layers.length;layersIdx++) {
                 var layer = layerInfo.layers[layersIdx];
-                var parentLayerId = layer.parentLayerId;
-                var parentLayer;
                 var layerMaxScale = layer.maxScale;
                 var layerMinScale = layer.minScale;
                 
-                while (parentLayerId != -1) {
-                    parentLayer = layerInfo.layers[parentLayerId];
-                    parentLayerId = parentLayer.parentLayerId;
-                }
-                
                 subLayerIds += layer.id + ',';
-                          
-                if (parentLayer) {
-                    layerMaxScale = parentLayer.maxScale;
-                    layerMinScale = parentLayer.minScale;
-                }
                 
                 if (layerMaxScale != undefined && layerMaxScale != 0 && scales.indexOf(layerMaxScale) == -1) {
                     scales.push(layerMaxScale);
                 }
-                if (layerMinScale != undefined  && scales.indexOf(layerMinScale) == -1) {
+                if (layerMinScale != undefined  && layerMinScale != 0 && scales.indexOf(layerMinScale) == -1) {
                     scales.push(layerMinScale);
                 }
+                
             }
+            
+            // Run a second pass to properly set up the layers in full
+            for (layersIdx = 0;layersIdx < layerInfo.layers.length;layersIdx++) {
+                layer = layerInfo.layers[layersIdx];
+                var parentLayer = null;
+                while (!parentLayer) {
+                    if (layer.parentLayerId == -1) {
+                        parentLayer = layer;
+                    } else {
+                        parentLayer = layerInfo.layers[layer.parentLayerId];
+                    }
+                }
+                
+                if (layer.minScale == undefined || layer.minScale == 0) {
+                    if (parentLayer.minScale != 0) {
+                        layer.minScale = parentLayer.minScale;
+                    } else {
+                        layer.minScale = scales[0];
+                    }
+                }
+                
+                if (layer.maxScale == undefined || layer.maxScale == 0) {
+                    if (parentLayer.maxScale != 0) {
+                        layer.maxScale = parentLayer.maxScale;
+                    } else {
+                        layer.maxScale = scales[scales.length - 1];
+                    }
+                }
+            }
+            
             
             subLayerIds = subLayerIds.substring(0, subLayerIds.length - 1); 
             
@@ -332,7 +353,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             maxResolution =  resolutions[resolutions.length - 1];
             minResolution = resolutions[0];
             numZoomLevels = resolutions.length;
-            alwaysInRange = scales.length == 1 && scales[0] == 0;
+            alwaysInRange = scales.length == 1 && scales[0] == 0; // This should always be false
             zIndex = this.drawOrder ? this.drawOrder : null;
         }
         
@@ -352,7 +373,9 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             tileSize : tileSize,
             layerInfo : layerInfo,
             serviceObject : params.serviceObject,
-            alwaysInRange : alwaysInRange
+            alwaysInRange : alwaysInRange,
+            zIndex : zIndex,
+            tileOrigin: tileOrigin
         }
         
         switch (this.type) {
@@ -402,27 +425,98 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             this.url, 
                             OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                tileOrigin: tileOrigin,
                                 useScales: false
                             }, options))
+                            
+                        result.getURL =  this.arcGISGetUrlFunctionRepl
                     } else {
                         result = new OpenLayers.Layer.ArcGISCache(
                             title,
                             this.url, 
                             OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                tileOrigin: tileOrigin,
                                 useScales: false
                             }, options))
+                            
+                        result.getURL =  this.arcGISGetUrlFunctionRepl
                     }
                 }
         }
         
-        if (zIndex != null) {
-            result.setZIndex(zIndex);
-        }
-        
         return result;
+    },
+    
+    arcGISGetUrlFunctionRepl : function (bounds) {
+        var res = this.getResolution(); 
+
+        // tile center
+        var originTileX = (this.tileOrigin.lon + (res * this.tileSize.w/2)); 
+        var originTileY = (this.tileOrigin.lat - (res * this.tileSize.h/2));
+
+        var center = bounds.getCenterLonLat();
+        var point = {
+            x: center.lon, 
+            y: center.lat
+        };
+        var x = (Math.round(Math.abs((center.lon - originTileX) / (res * this.tileSize.w)))); 
+        var y = (Math.round(Math.abs((originTileY - center.lat) / (res * this.tileSize.h)))); 
+        var z = this.map.getZoom();
+        var start = this.getUpperLeftTileCoord(res);
+        var end = this.getLowerRightTileCoord(res); 
+        // this prevents us from getting pink tiles (non-existant tiles)
+        if (this.lods) {        
+            if (this.lods.length >= z) {
+                var lod = this.lods[this.map.getZoom()];
+            } else {
+                if (!lod) {
+                    if ((x < start.x || x >= end.x) || (y < start.y || y >= end.y)) {
+                        var rFloor = Math.floor(this.map.getResolution());
+                        for (var lodIndex = 0;lodIndex < this.lods.length;lodIndex++) {
+                            if (rFloor == Math.floor(this.lods[lodIndex].resolution)) {
+                                lod = this.lods[lodIndex];
+                            }
+                        }
+                        if (!lod) {
+                            return null;
+                        }
+                    } 
+                }
+            }
+        } else {
+            if ((x < start.x || x >= end.x) || (y < start.y || y >= end.y)) {
+                return null;
+            }        
+        }
+
+        // Construct the url string
+        var url = this.url;
+        var s = '' + x + y + z;
+
+        if (OpenLayers.Util.isArray(url)) {
+            url = this.selectUrl(s, url);
+        }
+
+        // Accessing tiles through ArcGIS Server uses a different path
+        // structure than direct access via the folder structure.
+        if (this.useArcGISServer) {
+            // AGS MapServers have pretty url access to tiles
+            url = url + '/tile/${z}/${y}/${x}';
+        } else {
+            // The tile images are stored using hex values on disk.
+            x = 'C' + this.zeroPad(x, 8, 16);
+            y = 'R' + this.zeroPad(y, 8, 16);
+            z = 'L' + this.zeroPad(z, 2, 16);
+            url = url + '/${z}/${y}/${x}.' + this.type;
+        }
+
+        // Write the values into our formatted url
+        url = OpenLayers.String.format(url, {
+            'x': x, 
+            'y': y, 
+            'z': z
+        });
+
+        return url;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Services"

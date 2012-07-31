@@ -116,7 +116,6 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                     }
                 }
                 
-                // Check this if the layer type is multilayer or if the layer has visibility
                 var checked;
                 if (this.checkState[layer.id] != undefined) {
                     checked = this.checkState[layer.id];
