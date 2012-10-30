@@ -12,6 +12,7 @@
         <module>openlayers-cql</module>
         <module>openlayers-nationalmap</module>
         <module>openlayers-px3json</module>
+        <module>openlayers-decluster</module>
     </modules>
 
     <name>Openlayers Parent</name>
