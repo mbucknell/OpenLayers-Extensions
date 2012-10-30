@@ -1,5 +1,2 @@
-/openlayers-nationalmap/target/
-/openlayers-cql/target/
-/openlayers/target/
-/openlayers-px3json/target/
-/openlayers-px3json/nb-configuration.xml
+/**/target/
+/**/nb-configuration.xml
