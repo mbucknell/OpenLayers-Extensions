@@ -17,11 +17,15 @@
 OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canvas, {
     
     decluster: true,
-    declustercoef: 2,
-    declusterPixel: null,
-    declusterRadius: null,
-    declusterOnCentroid: false,
-    declusterThetaAverage: true,
+    declusterCoef: 2,
+    declusterStrokeColor: '#ffffff',
+    declusterOnCentroid: true,
+    declusterThetaAverage: false,
+    declusterMinimumRadius: 24,
+    declusterDeactiveBuffer: 2,
+    
+    declusterPixel: null, // state
+    declusterRadius: null, // state
     
     /**
      * Constructor: OpenLayers.Renderer.Canvas
@@ -32,6 +36,17 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
      */
     initialize: function(containerID, options) {
         OpenLayers.Renderer.Canvas.prototype.initialize.apply(this, arguments);
+        
+        if (!options) {
+            options = {};
+        }
+        this.declusterCoef = options.declusterCoef || 2;
+        this.declusterStrokeColor = options.declusterStrokeColor || '#ffffff';
+        this.declusterOnCentroid = options.declusterOnCentroid || true;
+        this.declusterThetaAverage = options.declusterThetaAverage || false;
+        this.declusterMinimumRadius = options.declusterMinimumRadius || 24;
+        this.declusterDeactiveBuffer = options.declusterDeactiveBuffer || 2;
+        
         if (this.decluster) {
             this.clusterCanvas = document.createElement("canvas");
             this.clusterContext = this.clusterCanvas.getContext("2d");
@@ -120,7 +135,7 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                         this.clusterContext.fillStyle = "rgb(1,0,0)";
                         this.clusterContext.globalCompositeOperation = "lighter";
                         this.clusterContext.beginPath();
-                        this.clusterContext.arc(p0, p1, radius * this.declustercoef, 0, twoPi);
+                        this.clusterContext.arc(p0, p1, radius * this.declusterCoef, 0, twoPi);
                         this.clusterContext.fill();
                         this.clusterContext.globalCompositeOperation = "source-over";
                     }
@@ -175,7 +190,7 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                     var o1 = pt[1];
                     this.setCanvasStyle("stroke", style);
                     this.canvas.beginPath();
-                    this.canvas.strokeStyle = "#ffffff";
+                    this.canvas.strokeStyle = this.declusterStrokeColor;
                     var dx = o0 - p0;
                     var dy = o1 - p1;
                     var theta = Math.atan2(dy,dx);
@@ -189,7 +204,7 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                         this.clusterContext.fillStyle = "rgb(1,0,0)";
                         this.clusterContext.globalCompositeOperation = "lighter";
                         this.clusterContext.beginPath();
-                        this.clusterContext.arc(p0, p1, radius * this.declustercoef, 0, twoPi);
+                        this.clusterContext.arc(p0, p1, radius * this.declusterCoef, 0, twoPi);
                         this.clusterContext.fill();
                         this.clusterContext.globalCompositeOperation = "source-over";
                     }
@@ -252,24 +267,27 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                         var clusterCount = 0;
                         var clusterCentroidX = 0;
                         var clusterCentroidY = 0;
+                        var clusterMaxPointRadius = 0;
                         var clusterFeaturesAsArray = new Array();
                         for (var id in this.features) {
                             var candidateFeature = this.features[id][0];
                             var candidateStyle = this.features[id][1];
                             var candidateLocal = this.getLocalXY(candidateFeature.geometry);
-                            var candidateRadius = (candidateStyle.pointRadius) * this.declustercoef;
+                            var candidateRadius = (candidateStyle.pointRadius) * this.declusterCoef;
                             // calculate distance from center of pixel
                             var candidateDistanceX = candidateLocal[0] - (x + 0.5);
                             var candidateDistanceY = candidateLocal[1] - (y + 0.5);
                             if (((candidateDistanceX * candidateDistanceX) + (candidateDistanceY * candidateDistanceY)) < (candidateRadius * candidateRadius)) {
                                 var clusterFeature = {__proto__: candidateFeature};
                                 var clusterStyle = {__proto__: candidateStyle};
-                                clusterStyle.strokeColor = '#0000e9';
                                 var clusterFeatureAsArray = [clusterFeature, clusterStyle];
                                 clusterFeaturesAsArray.push(clusterFeatureAsArray);
                                 // TODO optimize later, this is subject to fixed precision floating point errors
                                 clusterCentroidX += candidateLocal[0];
                                 clusterCentroidY += candidateLocal[1];
+                                if (clusterMaxPointRadius < candidateStyle.pointRadius) {
+                                    clusterMaxPointRadius = candidateStyle.pointRadius;
+                                }
                                 clusterCount++;
                             }
                         }
@@ -283,8 +301,8 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                             clusterCenterX = clusterCentroidX;
                             clusterCenterY = clusterCentroidY;
                         } else {
-                            clusterCenterX = x;
-                            clusterCenterY = y;
+                            clusterCenterX = x + 0.5;
+                            clusterCenterY = y + 0.5;
                         }
                         for (var clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex) {
                             var clusterFeatureAsArray = clusterFeaturesAsArray[clusterIndex];
@@ -299,9 +317,8 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                         clusterFeaturesAsArray.sort(function(left, right) {
                             return left[2] - right[2];
                         });
-                        // TODO:  more intelligently figure out minumum decluster radius
-                        var declusterRadius = 24;
-
+                        // TODO:  expand radius if needed based on cluster count
+                        var declusterRadius = this.declusterMinimumRadius;
                         var declusterRadiansStart = clusterFeaturesAsArray[0][2];
                         var declusterRadiansStep = 2*Math.PI / clusterCount;
                         var declusterTheta;
@@ -321,13 +338,13 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                             var clusterFeature = clusterFeatureAsArray[0];
                             clusterFeature.geometry = {
                                 __proto__:  clusterFeature.geometry,
-                                orig:       clusterFeature.geometry};
+                                orig:       clusterFeature.geometry}; // HACK
                             clusterFeature.geometry.x = declusterLonLat.lon;
                             clusterFeature.geometry.y = declusterLonLat.lat;
                             this.clusterFeatures[clusterFeature.id] = clusterFeatureAsArray;
                         }
-                        this.declusterPixel = new OpenLayers.Pixel(x + 0.5,y + 0.5);
-                        this.declusterRadius = 24 + 3;  //TODO: hardcoded
+                        this.declusterPixel = new OpenLayers.Pixel(clusterCenterX,clusterCenterY);
+                        this.declusterRadius = this.declusterMinimumRadius + clusterMaxPointRadius + this.declusterDeactiveBuffer;
                         this.redraw();
                     }   
                 }
