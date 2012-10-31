@@ -317,7 +317,7 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                             var declusterX = Math.cos(declusterTheta) * declusterRadius;
                             var declusterY = Math.sin(declusterTheta) * declusterRadius;
                             var declusterPixel = new OpenLayers.Pixel(clusterCenterX + declusterX, clusterCenterY + declusterY);
-                            var declusterLonLat = map.getLonLatFromPixel(declusterPixel);
+                            var declusterLonLat = this.map.getLonLatFromPixel(declusterPixel);
                             var clusterFeature = clusterFeatureAsArray[0];
                             clusterFeature.geometry = {
                                 __proto__:  clusterFeature.geometry,
