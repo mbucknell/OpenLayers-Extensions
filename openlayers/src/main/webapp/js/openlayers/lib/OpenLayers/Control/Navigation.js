@@ -261,11 +261,8 @@ OpenLayers.Control.Navigation = OpenLayers.Class(OpenLayers.Control, {
      * deltaZ - {Integer}
      */
     wheelChange: function(evt, deltaZ) {
-        if (!this.map.fractionalZoom) {
-            deltaZ =  Math.round(deltaZ);
-        }
         var currentZoom = this.map.getZoom();
-        var newZoom = this.map.getZoom() + deltaZ;
+        var newZoom = this.map.getZoom() + Math.round(deltaZ);
         newZoom = Math.max(newZoom, 0);
         newZoom = Math.min(newZoom, this.map.getNumZoomLevels());
         if (newZoom === currentZoom) {

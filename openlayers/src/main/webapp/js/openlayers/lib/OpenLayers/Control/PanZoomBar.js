@@ -99,7 +99,6 @@ OpenLayers.Control.PanZoomBar = OpenLayers.Class(OpenLayers.Control.PanZoom, {
 
         this.map.events.un({
             "changebaselayer": this.redraw,
-            "updatesize": this.redraw,
             scope: this
         });
 
@@ -117,11 +116,7 @@ OpenLayers.Control.PanZoomBar = OpenLayers.Class(OpenLayers.Control.PanZoom, {
      */
     setMap: function(map) {
         OpenLayers.Control.PanZoom.prototype.setMap.apply(this, arguments);
-        this.map.events.on({
-            "changebaselayer": this.redraw,
-            "updatesize": this.redraw,
-            scope: this
-        });
+        this.map.events.register("changebaselayer", this, this.redraw);
     },
 
     /** 
@@ -194,7 +189,6 @@ OpenLayers.Control.PanZoomBar = OpenLayers.Class(OpenLayers.Control.PanZoom, {
     _addZoomBar:function(centered) {
         var imgLocation = OpenLayers.Util.getImageLocation("slider.png");
         var id = this.id + "_" + this.map.id;
-        var minZoom = this.map.getMinZoom();
         var zoomsToEnd = this.map.getNumZoomLevels() - 1 - this.map.getZoom();
         var slider = OpenLayers.Util.createAlphaImageDiv(id,
                        centered.add(-1, zoomsToEnd * this.zoomStopHeight), 
@@ -217,7 +211,7 @@ OpenLayers.Control.PanZoomBar = OpenLayers.Class(OpenLayers.Control.PanZoom, {
         
         var sz = {
             w: this.zoomStopWidth,
-            h: this.zoomStopHeight * (this.map.getNumZoomLevels() - minZoom)
+            h: this.zoomStopHeight * this.map.getNumZoomLevels()
         };
         var imgLocation = OpenLayers.Util.getImageLocation("zoombar.png");
         var div = null;
@@ -248,7 +242,7 @@ OpenLayers.Control.PanZoomBar = OpenLayers.Class(OpenLayers.Control.PanZoom, {
         this.map.events.register("zoomend", this, this.moveZoomBar);
 
         centered = centered.add(0, 
-            this.zoomStopHeight * (this.map.getNumZoomLevels() - minZoom));
+            this.zoomStopHeight * this.map.getNumZoomLevels());
         return centered; 
     },
     

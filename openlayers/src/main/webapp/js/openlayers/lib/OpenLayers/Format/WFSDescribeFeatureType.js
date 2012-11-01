@@ -5,7 +5,6 @@
 
 /**
  * @requires OpenLayers/Format/XML.js
- * @requires OpenLayers/Format/OGCExceptionReport.js
  */
  
 /**
@@ -188,13 +187,8 @@ OpenLayers.Format.WFSDescribeFeatureType = OpenLayers.Class(
             data = data.documentElement;
         }
         var schema = {};
-        if (data.nodeName.split(":").pop() === 'ExceptionReport') {
-            // an exception must have occurred, so parse it
-            var parser = new OpenLayers.Format.OGCExceptionReport();
-            schema.error = parser.read(data);
-        } else {
-            this.readNode(data, schema);
-        }
+        this.readNode(data, schema);
+        
         return schema;
     },
     

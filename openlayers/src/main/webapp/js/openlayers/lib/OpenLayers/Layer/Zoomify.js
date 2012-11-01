@@ -105,7 +105,6 @@ OpenLayers.Layer.Zoomify = OpenLayers.Class(OpenLayers.Layer.Grid, {
     initializeZoomify: function( size ) {
 
         var imageSize = size.clone();
-        this.size = size.clone();
         var tiles = new OpenLayers.Size(
             Math.ceil( imageSize.w / this.standardTileSize ),
             Math.ceil( imageSize.h / this.standardTileSize )
@@ -133,17 +132,13 @@ OpenLayers.Layer.Zoomify = OpenLayers.Class(OpenLayers.Layer.Grid, {
         this.tierImageSize.reverse();
 
         this.numberOfTiers = this.tierSizeInTiles.length;
-        var resolutions = [1];
+
         this.tileCountUpToTier = [0];
         for (var i = 1; i < this.numberOfTiers; i++) {
-            resolutions.unshift(Math.pow(2, i));
             this.tileCountUpToTier.push(
                 this.tierSizeInTiles[i-1].w * this.tierSizeInTiles[i-1].h +
                 this.tileCountUpToTier[i-1]
                 );
-        }
-        if (!this.serverResolutions) {
-            this.serverResolutions = resolutions;
         }
     },
 
@@ -200,10 +195,10 @@ OpenLayers.Layer.Zoomify = OpenLayers.Class(OpenLayers.Layer.Grid, {
      */
     getURL: function (bounds) {
         bounds = this.adjustBounds(bounds);
-        var res = this.getServerResolution();
+        var res = this.map.getResolution();
         var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
         var y = Math.round((this.tileOrigin.lat - bounds.top) / (res * this.tileSize.h));
-        var z = this.getZoomForResolution( res );
+        var z = this.map.getZoom();
 
         var tileIndex = x + y * this.tierSizeInTiles[z].w + this.tileCountUpToTier[z];
         var path = "TileGroup" + Math.floor( (tileIndex) / 256 ) +
@@ -224,10 +219,10 @@ OpenLayers.Layer.Zoomify = OpenLayers.Class(OpenLayers.Layer.Grid, {
     getImageSize: function() {
         if (arguments.length > 0) {
             var bounds = this.adjustBounds(arguments[0]);
-            var res = this.getServerResolution();
+            var res = this.map.getResolution();
             var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
             var y = Math.round((this.tileOrigin.lat - bounds.top) / (res * this.tileSize.h));
-            var z = this.getZoomForResolution( res );
+            var z = this.map.getZoom();
             var w = this.standardTileSize;
             var h = this.standardTileSize;
             if (x == this.tierSizeInTiles[z].w -1 ) {

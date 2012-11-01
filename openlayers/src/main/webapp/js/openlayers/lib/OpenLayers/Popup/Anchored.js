@@ -107,8 +107,11 @@ OpenLayers.Popup.Anchored =
     moveTo: function(px) {
         var oldRelativePosition = this.relativePosition;
         this.relativePosition = this.calculateRelativePosition(px);
-
-        OpenLayers.Popup.prototype.moveTo.call(this, this.calculateNewPx(px));
+        
+        var newPx = this.calculateNewPx(px);
+        
+        var newArguments = new Array(newPx);        
+        OpenLayers.Popup.prototype.moveTo.apply(this, newArguments);
         
         //if this move has caused the popup to change its relative position, 
         // we need to make the appropriate cosmetic changes.

@@ -128,20 +128,6 @@ OpenLayers.Control.OverviewMap = OpenLayers.Class(OpenLayers.Control, {
     maximized: false,
 
     /**
-     * APIProperty: maximizeTitle
-     * {String}  This property is used for showing a tooltip over the  
-     * maximize div. Defaults to "" (no title).
-     */ 
-    maximizeTitle: "",
-
-    /**
-     * APIProperty: minimizeTitle
-     * {String}  This property is used for showing a tooltip over the  
-     * minimize div. Defaults to "" (no title).
-     */ 
-    minimizeTitle: "",
-
-    /**
      * Constructor: OpenLayers.Control.OverviewMap
      * Create a new overview map
      *
@@ -261,9 +247,6 @@ OpenLayers.Control.OverviewMap = OpenLayers.Class(OpenLayers.Control, {
                                         'absolute');
             this.maximizeDiv.style.display = 'none';
             this.maximizeDiv.className = this.displayClass + 'MaximizeButton olButton';
-            if (this.maximizeTitle) {
-                this.maximizeDiv.title = this.maximizeTitle;
-            }
             this.div.appendChild(this.maximizeDiv);
     
             // minimize button div
@@ -276,9 +259,6 @@ OpenLayers.Control.OverviewMap = OpenLayers.Class(OpenLayers.Control, {
                                         'absolute');
             this.minimizeDiv.style.display = 'none';
             this.minimizeDiv.className = this.displayClass + 'MinimizeButton olButton';
-            if (this.minimizeTitle) {
-                this.minimizeDiv.title = this.minimizeTitle;
-            }
             this.div.appendChild(this.minimizeDiv);            
             this.minimizeControl();
         } else {
@@ -418,12 +398,8 @@ OpenLayers.Control.OverviewMap = OpenLayers.Class(OpenLayers.Control, {
      * minimize - {Boolean} 
      */
     showToggle: function(minimize) {
-        if (this.maximizeDiv) {
-            this.maximizeDiv.style.display = minimize ? '' : 'none';
-        }
-        if (this.minimizeDiv) {
-            this.minimizeDiv.style.display = minimize ? 'none' : '';
-        }
+        this.maximizeDiv.style.display = minimize ? '' : 'none';
+        this.minimizeDiv.style.display = minimize ? 'none' : '';
     },
 
     /**

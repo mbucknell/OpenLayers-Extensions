@@ -239,22 +239,6 @@ OpenLayers.Renderer.SVG = OpenLayers.Class(OpenLayers.Renderer.Elements, {
     setStyle: function(node, style, options) {
         style = style  || node._style;
         options = options || node._options;
-
-        var title = style.title || style.graphicTitle;
-        if (title) {
-            node.setAttributeNS(null, "title", title);
-            //Standards-conformant SVG
-            // Prevent duplicate nodes. See issue https://github.com/openlayers/openlayers/issues/92 
-            var titleNode = node.getElementsByTagName("title");
-            if (titleNode.length > 0) {
-                titleNode[0].firstChild.textContent = title;
-            } else {
-                var label = this.nodeFactory(null, "title");
-                label.textContent = title;
-                node.appendChild(label);
-            }
-        }
-
         var r = parseFloat(node.getAttributeNS(null, "r"));
         var widthFactor = 1;
         var pos;
@@ -264,6 +248,20 @@ OpenLayers.Renderer.SVG = OpenLayers.Class(OpenLayers.Renderer.Elements, {
                 node.style.visibility = "hidden";
             } else if (style.externalGraphic) {
                 pos = this.getPosition(node);
+                
+                if (style.graphicTitle) {
+                    node.setAttributeNS(null, "title", style.graphicTitle);
+                    //Standards-conformant SVG
+                    // Prevent duplicate nodes. See issue https://github.com/openlayers/openlayers/issues/92 
+                    var titleNode = node.getElementsByTagName("title");
+                    if (titleNode.length > 0) {
+                        titleNode[0].firstChild.textContent = style.graphicTitle;
+                    } else {
+                        var label = this.nodeFactory(null, "title");
+                        label.textContent = style.graphicTitle;
+                        node.appendChild(label);
+                    }
+                }
                 if (style.graphicWidth && style.graphicHeight) {
                   node.setAttributeNS(null, "preserveAspectRatio", "none");
                 }
@@ -284,7 +282,7 @@ OpenLayers.Renderer.SVG = OpenLayers.Class(OpenLayers.Renderer.Elements, {
                 node.setAttributeNS(null, "height", height);
                 node.setAttributeNS(this.xlinkns, "href", style.externalGraphic);
                 node.setAttributeNS(null, "style", "opacity: "+opacity);
-                node.onclick = OpenLayers.Event.preventDefault;
+                node.onclick = OpenLayers.Renderer.SVG.preventDefault;
             } else if (this.isComplexSymbol(style.graphicName)) {
                 // the symbol viewBox is three times as large as the symbol
                 var offset = style.pointRadius * 3;
@@ -1000,10 +998,9 @@ OpenLayers.Renderer.SVG.LABEL_VFACTOR = {
 
 /**
  * Function: OpenLayers.Renderer.SVG.preventDefault
- * *Deprecated*.  Use <OpenLayers.Event.preventDefault> method instead.
  * Used to prevent default events (especially opening images in a new tab on
  * ctrl-click) from being executed for externalGraphic symbols
  */
 OpenLayers.Renderer.SVG.preventDefault = function(e) {
-    OpenLayers.Event.preventDefault(e);
+    e.preventDefault && e.preventDefault();
 };

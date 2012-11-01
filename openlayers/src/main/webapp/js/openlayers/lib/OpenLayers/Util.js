@@ -71,8 +71,15 @@ OpenLayers.Util.isElement = function(o) {
  * {Boolean} true if the object is an array.
  */
 OpenLayers.Util.isArray = function(a) {
-    return (Object.prototype.toString.call(a) === '[object Array]');
+	return (Object.prototype.toString.call(a) === '[object Array]');
 };
+
+/** 
+ * Maintain existing definition of $.
+ */
+if(typeof window.$  === "undefined") {
+    window.$ = OpenLayers.Util.getElement;
+}
 
 /** 
  * Function: removeItem
@@ -105,7 +112,7 @@ OpenLayers.Util.removeItem = function(array, item) {
  * obj - {*}
  * 
  * Returns:
- * {Integer} The index at which the first object was found in the array.
+ * {Integer} The index at, which the first object was found in the array.
  *           If not found, returns -1.
  */
 OpenLayers.Util.indexOf = function(array, obj) {
@@ -123,17 +130,6 @@ OpenLayers.Util.indexOf = function(array, obj) {
 };
 
 
-/**
- * Property: dotless
- * {RegExp}
- * Compiled regular expression to match dots (".").  This is used for replacing
- *     dots in identifiers.  Because object identifiers are frequently used for
- *     DOM element identifiers by the library, we avoid using dots to make for
- *     more sensible CSS selectors.
- *
- * TODO: Use a module pattern to avoid bloating the API with stuff like this.
- */
-OpenLayers.Util.dotless = /\./g;
 
 /**
  * Function: modifyDOMElement
@@ -143,8 +139,7 @@ OpenLayers.Util.dotless = /\./g;
  *
  * Parameters:
  * element - {DOMElement} DOM element to modify.
- * id - {String} The element id attribute to set.  Note that dots (".") will be
- *     replaced with underscore ("_") in setting the element id.
+ * id - {String} The element id attribute to set.
  * px - {<OpenLayers.Pixel>|Object} The element left and top position,
  *                                  OpenLayers.Pixel or an object with
  *                                  a 'x' and 'y' properties.
@@ -162,7 +157,7 @@ OpenLayers.Util.modifyDOMElement = function(element, id, px, sz, position,
                                             border, overflow, opacity) {
 
     if (id) {
-        element.id = id.replace(OpenLayers.Util.dotless, "_");
+        element.id = id;
     }
     if (px) {
         element.style.left = px.x + "px";
@@ -200,8 +195,7 @@ OpenLayers.Util.modifyDOMElement = function(element, id, px, sz, position,
  * Parameters:
  * id - {String} An identifier for this element.  If no id is
  *               passed an identifier will be created 
- *               automatically.  Note that dots (".") will be replaced with
- *               underscore ("_") when generating ids.
+ *               automatically.
  * px - {<OpenLayers.Pixel>|Object} The element left and top position,
  *                                  OpenLayers.Pixel or an object with
  *                                  a 'x' and 'y' properties.
@@ -934,7 +928,6 @@ OpenLayers.Util.lastSeqID = 0;
  * 
  * Parameters:
  * prefix - {String} Optional string to prefix unique id. Default is "id_".
- *     Note that dots (".") in the prefix will be replaced with underscore ("_").
  * 
  * Returns:
  * {String} A unique id string, built on the passed in prefix.
@@ -942,8 +935,6 @@ OpenLayers.Util.lastSeqID = 0;
 OpenLayers.Util.createUniqueID = function(prefix) {
     if (prefix == null) {
         prefix = "id_";
-    } else {
-        prefix = prefix.replace(OpenLayers.Util.dotless, "_");
     }
     OpenLayers.Util.lastSeqID += 1; 
     return prefix + OpenLayers.Util.lastSeqID;        

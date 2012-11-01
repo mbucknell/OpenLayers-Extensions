@@ -41,17 +41,9 @@ OpenLayers.Control.ZoomBox = OpenLayers.Class(OpenLayers.Control, {
 
     /**
      * APIProperty: alwaysZoom
-     * {Boolean} Always zoom in/out when box drawn, even if the zoom level does
-     * not change.
+     * {Boolean} Always zoom in/out, when box drawed 
      */
     alwaysZoom: false,
-    
-    /**
-     * APIProperty: zoomOnClick
-     * {Boolean} Should we zoom when no box was dragged, i.e. the user only
-     * clicked? Default is true.
-     */
-    zoomOnClick: true,
 
     /**
      * Method: draw
@@ -101,7 +93,7 @@ OpenLayers.Control.ZoomBox = OpenLayers.Class(OpenLayers.Control, {
             if (lastZoom == this.map.getZoom() && this.alwaysZoom == true){ 
                 this.map.zoomTo(lastZoom + (this.out ? -1 : 1)); 
             }
-        } else if (this.zoomOnClick) { // it's a pixel
+        } else { // it's a pixel
             if (!this.out) {
                 this.map.setCenter(this.map.getLonLatFromPixel(position),
                                this.map.getZoom() + 1);

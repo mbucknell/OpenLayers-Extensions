@@ -172,8 +172,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
             this.down(evt);
             this.callback("down", [evt.xy]);
 
-            // prevent document dragging
-            OpenLayers.Event.preventDefault(evt);
+            OpenLayers.Event.stop(evt);
 
             if(!this.oldOnselectstart) {
                 this.oldOnselectstart = document.onselectstart ?

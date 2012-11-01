@@ -103,7 +103,7 @@ OpenLayers.Handler.Pinch = OpenLayers.Class(OpenLayers.Handler, {
             this.last = null;
         }
         // prevent document dragging
-        OpenLayers.Event.preventDefault(evt);
+        OpenLayers.Event.stop(evt);
         return propagate;
     },
 

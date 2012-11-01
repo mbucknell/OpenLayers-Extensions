@@ -694,7 +694,7 @@ OpenLayers.Popup = OpenLayers.Class({
             }
 
             OpenLayers.Event.stopObserving(
-                this.img, "load", this.img._onImgLoad
+                this.img, "load", this.img._onImageLoad
             );
     
         };

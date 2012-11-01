@@ -83,7 +83,6 @@ OpenLayers.Map = OpenLayers.Class({
      * mouseout - triggered after mouseout the map
      * mousemove - triggered after mousemove the map
      * changebaselayer - triggered after the base layer changes
-     * updatesize - triggered after the <updateSize> method was executed
      */
 
     /**
@@ -663,7 +662,6 @@ OpenLayers.Map = OpenLayers.Class({
              * be properly set below.
              */
             delete this.center;
-            delete this.zoom;
             this.addLayers(options.layers);
             // set center (and optionally zoom)
             if (options.center && !this.getCenter()) {
@@ -1491,7 +1489,6 @@ OpenLayers.Map = OpenLayers.Class({
     
             }
         }
-        this.events.triggerEvent("updatesize");
     },
     
     /**
@@ -1786,41 +1783,17 @@ OpenLayers.Map = OpenLayers.Class({
      * <baseLayer>'s maxExtent.
      */
     adjustZoom: function(zoom) {
-        if (this.baseLayer && this.baseLayer.wrapDateLine) {
-            var resolution, resolutions = this.baseLayer.resolutions,
-                maxResolution = this.getMaxExtent().getWidth() / this.size.w;
-            if (this.getResolutionForZoom(zoom) > maxResolution) {
-                if (this.fractionalZoom) {
-                    zoom = this.getZoomForResolution(maxResolution);
-                } else {
-                    for (var i=zoom|0, ii=resolutions.length; i<ii; ++i) {
-                        if (resolutions[i] <= maxResolution) {
-                            zoom = i;
-                            break;
-                        }
-                    }
-                } 
+        var resolution, resolutions = this.baseLayer.resolutions,
+            maxResolution = this.getMaxExtent().getWidth() / this.size.w;
+        if (this.getResolutionForZoom(zoom) > maxResolution) {
+            for (var i=zoom|0, ii=resolutions.length; i<ii; ++i) {
+                if (resolutions[i] <= maxResolution) {
+                    zoom = i;
+                    break;
+                }
             }
         }
         return zoom;
-    },
-    
-    /**
-     * APIMethod: getMinZoom
-     * Returns the minimum zoom level for the current map view. If the base
-     * layer is configured with <wrapDateLine> set to true, this will be the
-     * first zoom level that shows no more than one world width in the current
-     * map viewport. Components that rely on this value (e.g. zoom sliders)
-     * should also listen to the map's "updatesize" event and call this method
-     * in the "updatesize" listener.
-     *
-     * Returns:
-     * {Number} Minimum zoom level that shows a map not wider than its
-     * <baseLayer>'s maxExtent. This is an Integer value, unless the map is
-     * configured with <fractionalZoom> set to true.
-     */
-    getMinZoom: function() {
-        return this.adjustZoom(0);
     },
 
     /**
@@ -1844,11 +1817,13 @@ OpenLayers.Map = OpenLayers.Class({
                 zoom = Math.round(zoom);
             }
         }
-        var requestedZoom = zoom;
-        zoom = this.adjustZoom(zoom);
-        if (zoom !== requestedZoom) {
-            // zoom was adjusted, so keep old lonlat to avoid panning
-            lonlat = this.getCenter();
+        if (this.baseLayer.wrapDateLine) {
+            var requestedZoom = zoom;
+            zoom = this.adjustZoom(zoom);
+            if (zoom !== requestedZoom) {
+                // zoom was adjusted, so keep old lonlat to avoid panning
+                lonlat = this.getCenter();
+            }
         }
         // dragging is false by default
         var dragging = options.dragging || this.dragging;

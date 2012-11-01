@@ -311,7 +311,8 @@ OpenLayers.Format.KML = OpenLayers.Class(OpenLayers.Format.XML, {
 
     /**
      * Method: parseStyles
-     * Parses <Style> nodes
+     * Looks for <Style> nodes in the data and parses them
+     * Also parses <StyleMap> nodes, but only uses the 'normal' key
      * 
      * Parameters: 
      * nodes    - {Array} of {DOMElement} data to read/parse.
@@ -557,7 +558,8 @@ OpenLayers.Format.KML = OpenLayers.Class(OpenLayers.Format.XML, {
 
     /**
      * Method: parseStyleMaps
-     * Parses <StyleMap> nodes, but only uses the 'normal' key
+     * Looks for <Style> nodes in the data and parses them
+     * Also parses <StyleMap> nodes, but only uses the 'normal' key
      * 
      * Parameters: 
      * nodes    - {Array} of {DOMElement} data to read/parse.
@@ -1210,8 +1212,8 @@ OpenLayers.Format.KML = OpenLayers.Class(OpenLayers.Format.XML, {
     createPlacemarkXML: function(feature) {        
         // Placemark name
         var placemarkName = this.createElementNS(this.kmlns, "name");
-        var label = (feature.style && feature.style.label) ? feature.style.label : feature.id;
-        var name = feature.attributes.name || label;
+        var name = feature.style && feature.style.label ? feature.style.label :
+                   feature.attributes.name || feature.id;
         placemarkName.appendChild(this.createTextNode(name));
 
         // Placemark description

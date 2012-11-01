@@ -5,7 +5,6 @@
  * full text of the license. 
  *
  * @requires OpenLayers/SingleFile.js
- * @requires OpenLayers/Util/vendorPrefix.js
  */
 
 /**
@@ -20,8 +19,11 @@ OpenLayers.Animation = (function(window) {
      * Property: isNative
      * {Boolean} true if a native requestAnimationFrame function is available
      */
-    var requestAnimationFrame = OpenLayers.Util.vendorPrefix.js(window, "requestAnimationFrame");
-    var isNative = !!(requestAnimationFrame);
+    var isNative = !!(window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame);
     
     /**
      * Function: requestFrame
@@ -34,7 +36,11 @@ OpenLayers.Animation = (function(window) {
      * element - {DOMElement} Optional element that visually bounds the animation.
      */
     var requestFrame = (function() {
-        var request = window[requestAnimationFrame] ||
+        var request = window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
             function(callback, element) {
                 window.setTimeout(callback, 16);
             };

@@ -4,7 +4,6 @@
  * full text of the license. */
 
 /**
- * @requires OpenLayers/Util/vendorPrefix.js
  * @requires OpenLayers/Handler/Pinch.js
  */
 
@@ -47,11 +46,6 @@ OpenLayers.Control.PinchZoom = OpenLayers.Class(OpenLayers.Control, {
      */
     autoActivate: true,
     
-    /**
-     * APIProperty: handlerOptions
-     * {Object} Used to set non-default properties on the pinch handler
-     */
-
     /**
      * Constructor: OpenLayers.Control.PinchZoom
      * Create a control for zooming with pinch gestures.  This works on devices
@@ -163,10 +157,8 @@ OpenLayers.Control.PinchZoom = OpenLayers.Class(OpenLayers.Control, {
      */
     applyTransform: function(transform) {
         var style = this.map.layerContainerDiv.style;
-        var transformProperty = OpenLayers.Util.vendorPrefix.style("transform");
-        if (transformProperty) {
-            style[transformProperty] = transform;
-        }
+        style['-webkit-transform'] = transform;
+        style['-moz-transform'] = transform;
     },
     
     /**

@@ -167,29 +167,17 @@ OpenLayers.Event = {
     stop: function(event, allowDefault) {
         
         if (!allowDefault) { 
-            OpenLayers.Event.preventDefault(event);
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                event.returnValue = false;
+            }
         }
                 
         if (event.stopPropagation) {
             event.stopPropagation();
         } else {
             event.cancelBubble = true;
-        }
-    },
-
-    /**
-     * Method: preventDefault
-     * Cancels the event if it is cancelable, without stopping further
-     * propagation of the event.
-     *
-     * Parameters:
-     * event - {Event}
-     */
-    preventDefault: function(event) {
-        if (event.preventDefault) {
-            event.preventDefault();
-        } else {
-            event.returnValue = false;
         }
     },
 
@@ -297,9 +285,11 @@ OpenLayers.Event = {
         if (elementObservers) {
             for(var i = elementObservers.length-1; i >= 0; i--) {
                 var entry = elementObservers[i];
-                OpenLayers.Event.stopObserving.apply(this, [
-                    entry.element, entry.name, entry.observer, entry.useCapture
-                ]);
+                var args = new Array(entry.element,
+                                     entry.name,
+                                     entry.observer,
+                                     entry.useCapture);
+                var removed = OpenLayers.Event.stopObserving.apply(this, args);
             }
         }
     },
@@ -834,7 +824,7 @@ OpenLayers.Events = OpenLayers.Class({
      * 
      * Parameters:
      * type - {String} 
-     * evt - {Event || Object} will be passed to the listeners.
+     * evt - {Event}
      *
      * Returns:
      * {Boolean} The last listener return.  If a listener returns false, the

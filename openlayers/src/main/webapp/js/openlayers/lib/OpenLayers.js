@@ -132,7 +132,6 @@
             jsFiles = [
                 "OpenLayers/BaseTypes/Class.js",
                 "OpenLayers/Util.js",
-                "OpenLayers/Util/vendorPrefix.js",
                 "OpenLayers/Animation.js",
                 "OpenLayers/BaseTypes.js",
                 "OpenLayers/BaseTypes/Bounds.js",
@@ -415,4 +414,4 @@
 /**
  * Constant: VERSION_NUMBER
  */
-OpenLayers.VERSION_NUMBER="Release 2.13 dev";
+OpenLayers.VERSION_NUMBER="Release 2.12";
