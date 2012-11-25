@@ -397,6 +397,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                 multiLayer.layers[serviceLayersIdx].maxScale = maxScale;
             }
         }
+        
+        multiLayer.numZoomLevels = multiLayer.getNumZoomLevels();
+        
         return multiLayer;
     },
     

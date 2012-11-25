@@ -200,9 +200,9 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         var subLayerIds = '';
         var scales = [], resolutions = [];
         var minResolution, maxResolution;
-        var units = 'm';
-        var minZoom, maxZoom, numZoomLevels;
+        var numZoomLevels;
         var result;
+        var units = 'm';
         
 
         if (layerInfo) {
@@ -247,14 +247,14 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                 subLayerIds += layer.id + ',';
                           
                 if (parentLayer) {
-                    layerMaxScale = layer.maxScale;
-                    layerMinScale = layer.minScale;
+                    layerMaxScale = parentLayer.maxScale;
+                    layerMinScale = parentLayer.minScale;
                 }
                 
-                if (layerMaxScale != undefined && scales.indexOf(layerMaxScale) == -1) {
+                if (layerMaxScale != undefined && layerMaxScale != 0 && scales.indexOf(layerMaxScale) == -1) {
                     scales.push(layerMaxScale);
                 }
-                if (layerMinScale != undefined && scales.indexOf(layerMinScale) == -1) {
+                if (layerMinScale != undefined  && scales.indexOf(layerMinScale) == -1) {
                     scales.push(layerMinScale);
                 }
             }
@@ -267,7 +267,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         });
         
         if (resolutions.length == 0) {
-            resolutions = this.resolutionsFromScales(scales, 'm');
+            resolutions = this.resolutionsFromScales(scales[0] == 0 ? scales.slice(1) : scales, 'm');
         }
         
         resolutions = resolutions.sort(function(a,b) {
@@ -292,6 +292,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             visibility : true,
             projection: projection
         }
+        
         switch (this.type) {
             case 'dynamic':
                 if (useTNMLayers) {
@@ -350,7 +351,11 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
                             this.url, 
                             OpenLayers.Util.applyDefaults({
                                 layers : subLayerIds,
-                                tileSize: tileSize                       
+                                layerInfo : layerInfo,
+                                tileOrigin: tileOrigin,
+                                useScales: false,
+                                overrideDPI : true,
+                                tileSize: tileSize
                             }, options))
                     }
                 }
