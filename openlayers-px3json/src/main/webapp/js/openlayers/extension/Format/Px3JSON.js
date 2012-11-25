@@ -6,34 +6,26 @@
  */
 OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
     
-    /**
-     * Constructor: OpenLayers.Format.Px3JSON 
-     * Construct an OpenLayers.Format.Px3JSON object
-     * 
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on
-     *     the object.
-     */
-    initialize: function(options) {
-        OpenLayers.Util.applyDefaults(this, options);
-    },
-    
-   /**
-     * APIMethod: read
-     * Deserialize a OpenLayers.Format.Px3JSON string.
-     *
-     * Parameters:
-     * json - {String} A PxOpenLayers.Format.Px3JSON3JSON string
-     *
-     * Returns: 
-     * {OpenLayers.Format.Px3JSON.v1} Null is returned if the serialized Px3JSON is invalid
-     */
-    read: function(json) {
-        return OpenLayers.Format.Px3JSON.v17.prototype.read.apply(this, [json]);
-    },
-    
-    write: function(json, pretty) {
-        return OpenLayers.Format.JSON.prototype.write.apply(this, [json, pretty]);
+    read: function(json, filter) {
+        var obj = null;
+        var requiredStringNode = 'defaultToolGroup';
+        
+        if (typeof json == "string") {
+            obj = OpenLayers.Format.JSON.prototype.read.apply(this, [json, filter]);
+        } else { 
+            obj = json;
+        }  
+        
+        if(!obj) {
+            OpenLayers.Console.error("Bad JSON: " + json);
+        } else if(typeof(obj[requiredStringNode]) != "string") {
+            OpenLayers.Console.error("Bad Px3JSON - no "+requiredStringNode+": " + json);
+        } else {
+            for (key in obj) {
+                
+            }
+        }
+        return obj;
     },
     
     /**
