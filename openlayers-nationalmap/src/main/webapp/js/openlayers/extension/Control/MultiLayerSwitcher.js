@@ -237,6 +237,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 this.layerSwitcher.updateMap();
             }
         }
+        OpenLayers.Event.stop(event);
     },
     
     updateMap: function() {
@@ -264,7 +265,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     },
     
     replaceLayer : function(params) {
-        var layer = params.layer;
+        var incomingLayer = params.layer;
         var map = this.map;
         var outgoingLayerId = params.layerId;
         
@@ -276,17 +277,31 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 
                 // If the layer exists in this multilayer object, it will be 
                 // replaced. Otherwise, nothing happens
-                var layerIndex = mapLayer.containsLayer('name', layer.name);
+                var layerIndex = mapLayer.containsLayer('name', incomingLayer.name);
                 if (layerIndex != -1) {
+                    // Go ahead and remove these layers. 
+                    // Remove the multilayer and the layer we're going to replace. 
                     this.map.removeLayer(this.map.getLayer(mapLayer.id));
                     this.map.removeLayer(this.map.getLayer(outgoingLayerId));
                     
-                    mapLayer.replaceLayer(layer);
+                    // Only have to drop the incoming layer into the multilayer
+                    // object. Once that object is re-added to the map, the incoming
+                    // layer comes with it.
+                    mapLayer.replaceLayer(incomingLayer);
+                    
+                    // Update the layerStates object by removing the multiLayer 
+                    // object. This will cause a redraw of the layer switcher with
+                    // our new layer in there
                     this.layerStates.splice(mapLayerIndex, 1); 
                     
+                    // Re-add the  multilayer back to the map. This will cause a 
+                    // redraw call on the layer so we don't have to do a map redraw()
                     this.map.addLayer(mapLayer);
+                    
+                    // The layers get added at the bottom of the layer switcher when it gets
+                    // redrawn. Move them to their previous position.
                     this.map.setLayerIndex(mapLayer, mapLayerIndex);
-                    this.map.setLayerIndex(layer, mapLayerIndex + 1 + layerIndex);
+                    this.map.setLayerIndex(incomingLayer, mapLayerIndex + 1 + layerIndex);
                 }
             }
         }
