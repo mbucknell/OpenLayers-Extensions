@@ -1,4 +1,9 @@
 /**
+ * @requires OpenLayers/Format/Px3JSON/v17.js
+ * @requires OpenLayers/Format/Px3JSON/Service.js
+ */
+
+/**
  * Class: OpenLayers.Format.Px3JSON
  * 
  * NGA Palanterra x3 and USGS The National Map Viewer Configuration
@@ -6,26 +11,18 @@
  */
 OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
     
-    read: function(json, filter) {
-        var obj = null;
-        var requiredStringNode = 'defaultToolGroup';
-        
-        if (typeof json == "string") {
-            obj = OpenLayers.Format.JSON.prototype.read.apply(this, [json, filter]);
-        } else { 
-            obj = json;
-        }  
-        
-        if(!obj) {
-            OpenLayers.Console.error("Bad JSON: " + json);
-        } else if(typeof(obj[requiredStringNode]) != "string") {
-            OpenLayers.Console.error("Bad Px3JSON - no "+requiredStringNode+": " + json);
-        } else {
-            for (key in obj) {
-                
-            }
-        }
-        return obj;
+   /**
+     * APIMethod: read
+     * Deserialize a OpenLayers.Format.Px3JSON string.
+     *
+     * Parameters:
+     * json - {String} A PxOpenLayers.Format.Px3JSON3JSON string
+     *
+     * Returns: 
+     * {OpenLayers.Format.Px3JSON.v1} Null is returned if the serialized Px3JSON is invalid
+     */
+    read: function(json) {
+        return OpenLayers.Format.Px3JSON.v17.prototype.read.apply(this, [json]);
     },
     
     /**
