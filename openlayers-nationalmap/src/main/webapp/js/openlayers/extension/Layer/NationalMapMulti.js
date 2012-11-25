@@ -10,6 +10,12 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     
     initialOn : false,
     
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+        OpenLayers.Layer.prototype.initialize.apply(this, arguments);
+        this.events.addEventType('layers_toggled');
+    },
+    
     destroy: function() {
         if (this.map != null) {
             var l = this.options.layers;
@@ -106,34 +112,69 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         
         this.reinitializeScales();
         
-        this.numZoomLevels = this.getNumZoomLevels();
-        
         return layerReplaced;
+    },
+    
+    afterAdd : function() {
+        this.reinitializeScales();
     },
     
     reinitializeScales : function() {
         var scales = this.getScales();
+        
         for (var serviceLayersIdx = 0;serviceLayersIdx < this.layers.length;serviceLayersIdx++) {
             var serviceLayer = this.layers[serviceLayersIdx];
-            if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
+            if (serviceLayer.scales) {
                 var minScale = serviceLayer.scales[0]
                 var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
-                var minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
-                var maxZoom = scales.indexOf(maxScale);
-                this.layers[serviceLayersIdx].minZoom = minZoom;
-                this.layers[serviceLayersIdx].maxZoom = maxZoom;
-                this.layers[serviceLayersIdx].minScale = minScale;
-                this.layers[serviceLayersIdx].maxScale = maxScale;
+                var minZoom, maxZoom;
+                
+                minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
+                maxZoom = scales.indexOf(maxScale);
+
+                if (this.map) {
+                    var zoomOffset = 0;
+                    var mapMinZoom = this.map.getZoomForResolution(serviceLayer.resolutions[0]);
+                    if (mapMinZoom < serviceLayer.minZoom) {
+                        zoomOffset = serviceLayer.minZoom - mapMinZoom;
+                    }
+                    serviceLayer.zoomOffset = zoomOffset;
+                    
+                    minZoom = this.map.getZoomForResolution(serviceLayer.resolutions[0]);
+                    maxZoom = this.map.getZoomForResolution(serviceLayer.resolutions[serviceLayer.resolutions.length - 1]);
+                    
+                }
+                
+                serviceLayer.minZoom = minZoom;
+                serviceLayer.maxZoom = maxZoom;
+                serviceLayer.minScale = minScale;
+                serviceLayer.maxScale = maxScale;
+                
+                if (this.minScale == undefined || this.minScale < minScale) {
+                    this.minScale = minScale;
+                }
+                
+                if (this.maxScale == undefined || this.maxScale > maxScale) {
+                    this.maxScale = maxScale;
+                }
+                
+                if (this.minZoom == undefined || this.minZoom > minZoom) {
+                    this.minZoom = minZoom;
+                }
+                
+                if (this.maxZoom == undefined || this.maxZoom > maxZoom) {
+                    this.maxZoom = maxZoom;
+                }
+                
+                
             }
         }
+        this.numZoomLevels = this.getNumZoomLevels();
     },
     
     toggleLayers: function() {
         var mapZoom = this.map.getZoom();
         var layers = this.layers;
-        
-        this.setMapTemp = this.setMap;
-        this.setMap = OpenLayers.Layer.setMap
                     
         for (var layersIndex = 0; layersIndex < layers.length; layersIndex++) {
             var layer = layers[layersIndex];
@@ -145,18 +186,23 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
                 mapLayer = this.map.getLayer(layer.id);
             }
             
-            if (mapLayer.minZoom <= mapZoom && mapLayer.maxZoom >= mapZoom) {
-                mapLayer.setVisibility(true);
-            } else {
-                if (this.map.getLayer(layer.id)) {
-                    mapLayer.setVisibility(false);
+            if (layer.CLASS_NAME !== 'OpenLayers.Layer') {
+                if (mapLayer.minZoom <= mapZoom && mapLayer.maxZoom >= mapZoom) {
+                    mapLayer.setVisibility(true);
+                } else {
+                    if (this.map.getLayer(layer.id)) {
+                        mapLayer.setVisibility(false);
+                    }
                 }
+            } else {
+                mapLayer.setVisibility(false);
             }
             
+            this.events.triggerEvent("layers_toggled", {
+                layer: mapLayer
+            });
         }
         
-        this.setMap = this.setMapTemp;
-        delete this.setMapTemp;
     },
     
     getBounds: function() {
