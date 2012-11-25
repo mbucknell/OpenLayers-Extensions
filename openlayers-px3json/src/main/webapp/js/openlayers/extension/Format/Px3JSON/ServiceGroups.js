@@ -37,6 +37,5 @@ OpenLayers.Format.Px3JSON.ServiceGroups = OpenLayers.Class(OpenLayers.Format.Px3
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.ServiceGroups(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
     },
-    
     CLASS_NAME: "OpenLayers.Format.Px3JSON.ServiceGroups"
 });
