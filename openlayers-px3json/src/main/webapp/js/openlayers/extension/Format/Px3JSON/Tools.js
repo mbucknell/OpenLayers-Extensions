@@ -1,15 +1,14 @@
-OpenLayers.Format.Px3JSON.Tools = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.Tools = OpenLayers.Class({
+    /**
+    * @requires OpenLayers/Format/Px3JSON/ToolConfiguration.js
+    */
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.Tools (Px3 Viewer Unique)
-    * 
-    * Tool Group Object
+    * Class: OpenLayers.Format.Px3JSON.Tools
     * 
     * An array of tool group configuration objects.
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @requires OpenLayers/Format/Px3JSON/ToolConfiguration.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -23,13 +22,8 @@ OpenLayers.Format.Px3JSON.Tools = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      * {OpenLayers.Format.Px3JSON.ToolConfiguration[]} An array of tool configuration objects.
      */
     tools: [],
-    
-    /**
-     * Property: minItems
-     * {Integer} A number, >= 0, specifies the minimum length of the tools array for this
-     * object to be considered valid.
-     */
-    minItems : 1,
+   
+    options : null,
     
     /**
      * Constructor: OpenLayers.Format.Px3JSON.Tools
@@ -41,10 +35,11 @@ OpenLayers.Format.Px3JSON.Tools = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        if (options.tools) {
+        this.options = options;
+        if (this.options.tools) {
             this.tools = [];
-            for (var toolsIndex = 0;toolsIndex < options.tools.length;toolsIndex++) {
-                this.tools.push(new OpenLayers.Format.Px3JSON.ToolConfiguration(options.tools[toolsIndex]));
+            for (var toolsIndex = 0;toolsIndex < this.options.tools.length;toolsIndex++) {
+                this.tools.push(new OpenLayers.Format.Px3JSON.ToolConfiguration(this.options.tools[toolsIndex]));
             }
         }
     },
@@ -74,11 +69,8 @@ OpenLayers.Format.Px3JSON.Tools = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      * {Boolean} The object is valid object of the given type.
      */
     isValidType : function(obj) {
-        if (this.tools.length < this.minItems) {
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     },
+    
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Tools"
 });

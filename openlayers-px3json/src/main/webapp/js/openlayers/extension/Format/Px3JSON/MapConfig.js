@@ -1,15 +1,14 @@
-OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class({
+    /**
+    * @requires OpenLayers/Format/Px3JSON/MapConfig.js
+    */
 
     /**
     * Class: OpenLayers.Format.Px3JSON.MapConfig
     * 
-    * (Base Context)
-    * 
     * An object used to set the initial map settings.
     * 
-    * @requires OpenLayers/Format/Px3JSON/MapConfig.js
-    * @required OpenLayers/Format/Px3JSON/BackgroundMaps.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -39,7 +38,7 @@ OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON
 
     /**
      * Property: dynamicUserServicesGroupId
-     * {String} Optional. Id of a service group used to keep track of dynamic user services.
+     * {String} Id of a service group used to keep track of dynamic user services.
      */
     dynamicUserServicesGroupId: null,
 
@@ -84,19 +83,8 @@ OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON
      * {OpenLayers.Format.Px3JSON.BackgroundMaps[]} An array of objects defining types of background maps.
      */
     backgroundMaps: [],
-    
-    /**
-     * Property: identifyLayerOption
-     * {String} Optional. Default: "esri.tasks.IdentifyParameters.LAYER_OPTION_ALL"
-     * Possible values: "esri.tasks.IdentifyParameters.LAYER_OPTION_ALL",
-     *  "esri.tasks.IdentifyParameters.LAYER_OPTION_TOP",
-     *  "esri.tasks.IdentifyParameters.LAYER_OPTION_VISIBLE"
-     *  
-     *  Information regarding this property could not be found @ 
-     *  https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
-     *  But it does appear in /doc/jsapix-config-schema.jsd
-     */
-    identifyLayerOption : "esri.tasks.IdentifyParameters.LAYER_OPTION_ALL",
+
+    options : null,
     
     /**
      * Constructor: OpenLayers.Format.Px3JSON.MapConfig
@@ -108,10 +96,11 @@ OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        if (options.backgroundMaps) {
+        this.options = options;
+        if (this.options.backgroundMaps) {
             this.backgroundMaps = [];
-            for (var backgroundMapsIndex = 0;backgroundMapsIndex < options.backgroundMaps.length;backgroundMapsIndex++) {
-                this.backgroundMaps.push(new OpenLayers.Format.Px3JSON.BackgroundMaps(options.backgroundMaps[backgroundMapsIndex]));
+            for (var backgroundMapsIndex = 0;backgroundMapsIndex < this.options.backgroundMaps.length;backgroundMapsIndex++) {
+                this.backgroundMaps.push(new OpenLayers.Format.Px3JSON.BackgroundMaps(this.options.backgroundMaps[backgroundMapsIndex]));
             }
         }
     },
@@ -128,6 +117,20 @@ OpenLayers.Format.Px3JSON.MapConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.MapConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.MapConfig"
