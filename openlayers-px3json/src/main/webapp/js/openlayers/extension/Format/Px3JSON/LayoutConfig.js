@@ -1,15 +1,14 @@
-OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class({
+    /**
+    * @requires OpenLayers/Format/Px3JSON/OverlayGroups.js
+    */
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.LayoutConfig (Base Context)
-    * 
-    * Layout Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.LayoutConfig
     * 
     * An object containing various properties used to setup the layout of the application.
-    *
-    * @requires OpenLayers/Format/Px3JSON.js  
-    * @requires OpenLayers/Format/Px3JSON/OverlayGroups.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * 
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
    
      /**
@@ -40,7 +39,7 @@ OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class(OpenLayers.Format.Px3J
       
     /**
      * Property: hideToolbar
-     * {Boolean} Optional. If true, makes the toolbar hidden initially.
+     * {Boolean} If true, makes the toolbar hidden initially.
      */
     hideToolbar: null,
   
@@ -60,17 +59,10 @@ OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class(OpenLayers.Format.Px3J
      * Property: availableTasks
      * {String[]} An array of task ids that will be available in the left pane.
      */
-    availableTasks: [],
-           
-    /**
-     * Property: backgroundMaps
-     * {OpenLayers.Format.Px3JSON.BackgroundMaps[]} Optional.
-     * This property does not exist @ 
-     * https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
-     * but does exist in /doc/example.json so is included here
-     */       
-    backgroundMaps : [],       
-            
+    availableTasks: null,
+                  
+    options : null,
+    
     /**
      * Constructor: OpenLayers.Format.Px3JSON.LayoutConfig
      * Construct an OpenLayers.Format.Px3JSON.LayoutConfig object
@@ -81,20 +73,13 @@ OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class(OpenLayers.Format.Px3J
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        if (options.overlayGroups) {
+        this.options = options;
+        if (this.options.overlayGroups) {
             this.overlayGroups = [];
-            for (var overlayGroupsIndex = 0;overlayGroupsIndex < options.overlayGroups.length;overlayGroupsIndex++) {
-                this.overlayGroups.push(new OpenLayers.Format.Px3JSON.OverlayGroups(options.overlayGroups[overlayGroupsIndex]));
+            for (var overlayGroupsIndex = 0;overlayGroupsIndex < this.options.overlayGroups.length;overlayGroupsIndex++) {
+                this.overlayGroups.push(new OpenLayers.Format.Px3JSON.OverlayGroups(this.options.overlayGroups[overlayGroupsIndex]));
             }
         }
-        
-        if (options.backgroundMaps) {
-            this.backgroundMaps = [];
-            for (var backgroundMapsIndex = 0;backgroundMapsIndex < options.backgroundMaps.length;backgroundMapsIndex++) {
-                this.backgroundMaps.push(new OpenLayers.Format.Px3JSON.BackgroundMaps(options.backgroundMaps[backgroundMapsIndex]));
-            }
-        }
-        
     },
     
     /**
@@ -109,6 +94,20 @@ OpenLayers.Format.Px3JSON.LayoutConfig = OpenLayers.Class(OpenLayers.Format.Px3J
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.LayoutConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.LayoutConfig"

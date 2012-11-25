@@ -1,14 +1,14 @@
-OpenLayers.Format.Px3JSON.SearchConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.SearchConfig = OpenLayers.Class({
+    /**
+    * @requires OpenLayers/Format/Px3JSON/SearchConfig.js
+    */
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.SearchConfig (Px3 Viewer Unique)
-    * 
-    * Search Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.SearchConfig
     * 
     * An object used to configure the search function.
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * z2see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
    
     /**
@@ -19,7 +19,7 @@ OpenLayers.Format.Px3JSON.SearchConfig = OpenLayers.Class(OpenLayers.Format.Px3J
 
     /**
      * Property: searchZoomLevel
-     * {Integer} The level to zoom to on a successful search.
+     * {Number} The level to zoom to on a successful search.
      */
     searchZoomLevel: null,
 
@@ -40,6 +40,21 @@ OpenLayers.Format.Px3JSON.SearchConfig = OpenLayers.Class(OpenLayers.Format.Px3J
      * {String} Optional. Text to be displayed when there are no search or routing results.
      */
     defaultText: null,
+
+    options : null,
+    
+    /**
+     * Constructor: OpenLayers.Format.Px3JSON.SearchConfig
+     * Construct an OpenLayers.Format.Px3JSON.SearchConfig object
+     * 
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+        this.options = options;
+    },
     
     /**
      * APIMethod: read
@@ -53,6 +68,20 @@ OpenLayers.Format.Px3JSON.SearchConfig = OpenLayers.Class(OpenLayers.Format.Px3J
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.SearchConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.SearchConfig"

@@ -1,24 +1,15 @@
-OpenLayers.Format.Px3JSON.InfoWindowConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.InfoWindowConfig = OpenLayers.Class({
+    /**
+    * @requires OpenLayers/Format/Px3JSON/SearchConfig.js
+    */
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.InfoWindowConfig (Px3 Viewer Unique)
-    * 
-    * Info Window Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.InfoWindowConfig
     * 
     * An object containing configuration information related to the info window.
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @requires OpenLayers/Format/Px3JSON/SearchConfig.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
-   
-   /**
-    * Property: editAnnotationGeoServiceUrl
-    * {String} This property exists in both /doc/jsapix-config.schema.jsd
-    * and in /doc/example.json but has no description @
-    * https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
-    */
-   editAnnotationGeoServiceUrl : null,
    
     /**
      * Property: type
@@ -69,6 +60,8 @@ OpenLayers.Format.Px3JSON.InfoWindowConfig = OpenLayers.Class(OpenLayers.Format.
      */
     searchConfig: null, 
     
+    options : null,
+    
     /**
      * Constructor: OpenLayers.Format.Px3JSON.InfoWindowConfig
      * Construct an OpenLayers.Format.Px3JSON.InfoWindowConfig object
@@ -79,8 +72,9 @@ OpenLayers.Format.Px3JSON.InfoWindowConfig = OpenLayers.Class(OpenLayers.Format.
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        if (options.searchConfig) {
-            this.searchConfig = new OpenLayers.Format.Px3JSON.SearchConfig(options.searchConfig);
+        this.options = options;
+        if (this.options.searchConfig) {
+            this.searchConfig = new OpenLayers.Format.Px3JSON.SearchConfig(this.options.searchConfig);
         }
     },
     
@@ -96,6 +90,20 @@ OpenLayers.Format.Px3JSON.InfoWindowConfig = OpenLayers.Class(OpenLayers.Format.
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.InfoWindowConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.InfoWindowConfig"
