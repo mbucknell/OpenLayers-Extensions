@@ -12,22 +12,8 @@
  * The NationalMapXYZ class is designed to make it easier for people who have tiles
  * arranged by a standard XYZ grid. 
  */
-OpenLayers.Layer.NationalMapXYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
-    /**
-     * APIProperty: isBaseLayer
-     * Default is true, as this is designed to be a base tile source. 
-     */
-    isBaseLayer: true,
-    
-       
-    /**
-     * APIProperty: sphericalMecator
-     * Whether the tile extents should be set to the defaults for 
-     *    spherical mercator. Useful for things like OpenStreetMap.
-     *    Default is false, except for the OSM subclass.
-     */
-    sphericalMercator: false,
-    
+OpenLayers.Layer.NationalMapXYZ = OpenLayers.Class(OpenLayers.Layer.XYZ, {
+
     /**
      * Constructor: OpenLayers.Layer.NationalMapXYZ
      *
@@ -135,22 +121,6 @@ OpenLayers.Layer.NationalMapXYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
         return new OpenLayers.Tile.Image(this, position, bounds, 
                                          null, this.tileSize);
     },
-    
-        /* APIMethod: setMap
-     * When the layer is added to a map, then we can fetch our origin 
-     *    (if we don't have one.) 
-     * 
-     * Parameters:
-     * map - {<OpenLayers.Map>}
-     */
-    setMap: function(map) {
-        OpenLayers.Layer.Grid.prototype.setMap.apply(this, arguments);
-        if (!this.tileOrigin) { 
-            this.tileOrigin = new OpenLayers.LonLat(this.maxExtent.left,
-                                                this.maxExtent.bottom);
-        }                                       
-    },
-
 
     CLASS_NAME: "OpenLayers.Layer.NationalMapXYZ"
 });
