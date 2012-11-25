@@ -1,16 +1,15 @@
-OpenLayers.Format.Px3JSON.Locators = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.Locators = OpenLayers.Class({
         
     /**
-    * Class: OpenLayers.Format.Px3JSON.Locators (Px3 Viewer Unique)
-    * 
-    * Locator Object
-    * 
+     * @requires OpenLayers/Format/Px3JSON/Fields.js
+     */
+    
+    /**
+    * Class: OpenLayers.Format.Px3JSON.Locators
     * The locators object can be thought of as a hash map with the key being the
     * locator id and value a locator configuration object.
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @requires OpenLayers/Format/Px3JSON/Fields.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -23,8 +22,10 @@ OpenLayers.Format.Px3JSON.Locators = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     
     /**
      * Property: spatialReference
-     * {OpenLayers.Format.Px3JSON.SpatialReference} Spatial Reference of the extent.
-     */ 
+     * {String} Spatial Reference of the locator.
+     */
+     // TODO- This can probably immediately be made into an OpenLayers spatial reference
+     // but the API calls for it to be a string
     spatialReference: null,
     
     /**
@@ -60,13 +61,10 @@ OpenLayers.Format.Px3JSON.Locators = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
+        this.options = options;
         
-        if (options.fields && Object.keys['fields'].length) {
-            this.fields = new OpenLayers.Format.Px3JSON.Fields(options.fields);
-        }
-        
-        if (options.spatialReference) {
-            this.spatialReference = new OpenLayers.Format.Px3JSON.SpatialReference(options.spatialReference);
+        if (this.options.fields && Object.keys['fields'].length) {
+            this.fields = new OpenLayers.Format.Px3JSON.Fields(this.options.fields);
         }
     },
     
@@ -95,7 +93,7 @@ OpenLayers.Format.Px3JSON.Locators = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      * {Boolean} The object is valid ServiceGroups object of the given type.
      */
     isValidType : function(obj) {
-        if (obj.version !== null && obj.version !== '9.3.1' && obj.version !== '10') {
+        if (obj.version !== '9.3.1' && obj.version !== '10') {
             return false;
         }
         return true;

@@ -1,12 +1,9 @@
-OpenLayers.Format.Px3JSON.Fields = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.Fields = OpenLayers.Class({
     
     /**
     * Class: OpenLayers.Format.Px3JSON.Fields
     * 
-    * Fields Object
-    * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -41,6 +38,18 @@ OpenLayers.Format.Px3JSON.Fields = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      * NOTE: The API configuration has this field as a boolean. This is incorrect.
      */
     zipField: 'Zip',
+               
+    /**
+     * Constructor: OpenLayers.Format.Px3JSON.Fields
+     * Construct an OpenLayers.Format.Px3JSON.Fields object
+     * 
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+    },
     
     /**
      * APIMethod: read
@@ -54,6 +63,20 @@ OpenLayers.Format.Px3JSON.Fields = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.Fields(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Fields"

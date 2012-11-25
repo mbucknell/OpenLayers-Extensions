@@ -1,16 +1,13 @@
-OpenLayers.Format.Px3JSON.Tasks = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.Tasks = OpenLayers.Class({
     
     /**
-    * Class: OpenLayers.Format.Px3JSON.Tasks (Px3 Viewer Unique)
-    * 
-    * Task Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.Tasks 
     * 
     * The tasks object can be thought of as a hash map with the key being the 
     * task id and value being a task configuration object. This is included in 
     * the NGA Palanterra x3 Toolbox, but not used by USGS The National Map
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -41,32 +38,28 @@ OpenLayers.Format.Px3JSON.Tasks = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
      * {Object} Optional. Hash map of parameter configuration objects with 
      * parameter ids as a key.	These objects set the output symbology 
      * for the task.
-     * 
-     * TODO-- There seems to be quite a deep object found here @ /doc/jsapix-config-schema.jsd
-     * However, there is no API description of this object @ 
-     * https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
-     * and the reference Px3JSON set @ /doc/example.json does not contain this.
-     * Therefore there is no supporting OpenLayers-subclassed object provided in this library
      */
     parameters: null,  
     
     /**
      * Property: classification
-     * {String} Optional. Valid values are:
+     * {Object} Optional. Valid values are:
      * "UNCLASSIFIED", "CONFIDENTIAL", "SECRET", and "TOP SECRET". 
      * This will be used if displaySecurityBanners or displayTocSecurityMarkings in the
      */
     classification: null,     
     
     /**
-     * Property: caveats
-     * {String[]} Optional.
+     * Constructor: OpenLayers.Format.Px3JSON.OpenLayers.Format.Px3JSON.Extents
+     * Construct an OpenLayers.Format.Px3JSON.OpenLayers.Format.Px3JSON.Extents object
      * 
-     * TODO-- This parameter exists in /doc/jsapix-config-schema.jsd but does not exist in
-     * the API @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf 
-     * and there is no example of this in /doc/example.json.
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
      */
-    caveats : [],
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+    },
     
     /**
      * APIMethod: read

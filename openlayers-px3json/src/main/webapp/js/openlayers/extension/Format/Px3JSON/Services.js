@@ -1,18 +1,15 @@
-OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.Services = OpenLayers.Class({
     
     /**
-    * Class: OpenLayers.Px3JSON.Service (Base Context)
-    * 
-    * Service Configuration Object
-    * 
+    * @requires OpenLayers/Format/Px3JSON/LayerConfig.js
+    */
+    
+    /**
+    * Class: OpenLayers.Px3JSON.Service
     * The services object can be thought of as a hash map with the key being 
     * the service id and value being a service configuration object.
     * 
-    *  @requires OpenLayers/Format/Px3JSON.js
-    *  @requires OpenLayers/Format/Px3JSON/LayerConfigs.js
-    *  @requires OpenLayers/Format/Px3JSON/InfoTemplates.js
-    *  
-    *  @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
     
     /**
@@ -90,7 +87,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     /** 
      * Property : type
      * {String} Specifies the layer's type
-     * Possible values: tiled, dynamic, wms, wmts, image, nrl. 
+     * Possible values: tiled, dynamic, wms,wmts, image, nrl. 
      * Note: Dynamic Services will be rendered as PNG 24 images 
      * except in IE6 where they will be rendered as PNG 8.
      */
@@ -101,13 +98,12 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      * {Number} Specifies the default draw order for stacking services on top of each 
      * other to create the map the user sees in the browser. The higher values appear 
      * on top.
-     * Default: 0
      */
-    drawOrder : 0,
+    drawOrder : null,
     
     /**
      * Property : downloadUrl
-     * {String} Optional. URL pointing to a file to be used for the Download Layer link on 
+     * {String} URL pointing to a file to be used for the Download Layer link on 
      * this service's context menu.
      */
     downloadUrl : null,
@@ -115,9 +111,8 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     /** 
      * Property : opacity
      * {Number} Number between 0 and 1.0 that determines the default opacity of a layer.
-     * Default: 1.0
      */
-    opacity : 1.0,
+    opacity : null,
     
     /**
      * Property : refreshIntervalSeconds
@@ -140,20 +135,6 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
     defaultInfotemplate : {},
     
     /**
-     * Property: imageFormat
-     * See /doc/jsapix-config-schema.jsd
-     * {String} Optional. 
-     */
-    imageFormat : null,
-    
-    /**
-     * Property: disableViewin
-     * See /doc/jsapix-config-schema.jsd
-     * {Boolean} Optional. 
-     */
-    disableViewin : false,
-    
-    /**
      * Constructor: OpenLayers.Format.Px3JSON.Services
      * Construct an OpenLayers.Format.Px3JSON.Services object
      * 
@@ -163,16 +144,15 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        
         if (this.opacity < 0) {
             this.opacity = 0;
         } else if (this.opacity > 1) {
             this.opacity = 1.0;
         }
-        for (var layer in options.layers) {
+        for (var layer in this.layers) {
             this.layers[layer] = new OpenLayers.Format.Px3JSON.LayerConfig(this.layers[layer]);
         }
-        if (!Object.keys(this.layers).length) {
+        if (Object.keys(this.layers).length) {
             this.layers = this.defaultInfotemplate;
         }
     },
@@ -189,6 +169,31 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.Services(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if a Service object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid Service object of the given type.
+     */
+    isValidType : function(obj) {
+        if (!obj.id ||
+            !obj.url ||
+            !obj.displayName ||
+            !obj.type ||
+            !obj.drawOrder ||
+            !obj.downloadUrl ||
+            !obj.opacity ||
+            !obj.layers || 
+            !obj.defaultInfotemplate) {
+            return false;
+        }
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.Services"
