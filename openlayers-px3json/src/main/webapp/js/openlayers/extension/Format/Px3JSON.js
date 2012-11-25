@@ -11,6 +11,24 @@
  */
 OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
     
+    /**
+     * Holds the JSON that the object was initialized with
+     */
+    options : {},
+    
+    /**
+     * Constructor: OpenLayers.Format.Px3JSON 
+     * Construct an OpenLayers.Format.Px3JSON object
+     * 
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+        this.options = options;
+    },
+    
    /**
      * APIMethod: read
      * Deserialize a OpenLayers.Format.Px3JSON string.
@@ -24,6 +42,11 @@ OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
     read: function(json) {
         return OpenLayers.Format.Px3JSON.v17.prototype.read.apply(this, [json]);
     },
+    
+    write: function(json, pretty) {
+        return OpenLayers.Format.JSON.prototype.write.apply(this, [json, pretty]);
+    },
+
     
     /**
      * Method: isValidType
