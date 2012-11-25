@@ -55,8 +55,8 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++){
             var layer = this.layers[layersIndex];
             var layerNumZoomLevels = layer.numZoomLevels;
-            if (!layerNumZoomLevels) layerNumZoomLevels = layer.resolutions.length;
-            if (layerNumZoomLevels > result) result = layer.numZoomLevels;
+            if (!layerNumZoomLevels || layer.resolutions.length > layerNumZoomLevels) layerNumZoomLevels = layer.resolutions.length;
+            if (layerNumZoomLevels > result) result = layerNumZoomLevels;
         }
         return result;  
     },
@@ -115,9 +115,6 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         var scales = this.getScales();
         for (var serviceLayersIdx = 0;serviceLayersIdx < this.layers.length;serviceLayersIdx++) {
             var serviceLayer = this.layers[serviceLayersIdx];
-            if (!serviceLayer) {
-                var a= 1;
-            }
             if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
                 var minScale = serviceLayer.scales[0]
                 var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
@@ -148,11 +145,11 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
                 mapLayer = this.map.getLayer(layer.id);
             }
             
-            if (layer.minZoom <= mapZoom && layer.maxZoom >= mapZoom) {
+            if (mapLayer.minZoom <= mapZoom && mapLayer.maxZoom >= mapZoom) {
                 mapLayer.setVisibility(true);
             } else {
                 if (this.map.getLayer(layer.id)) {
-                mapLayer.setVisibility(false);
+                    mapLayer.setVisibility(false);
                 }
             }
             

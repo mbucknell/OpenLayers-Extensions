@@ -21,6 +21,30 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         }
     },
     
+    showControls: function(minimize) {
+
+        this.maximizeDiv.style.display = minimize ? "" : "none";
+        this.minimizeDiv.style.display = minimize ? "none" : "";
+
+        this.layersDiv.style.display = minimize ? "none" : "";
+        
+        if (this.layersDiv.style.display !== "none") {
+            // Because of the size of the list of layers, layersDiv needs 
+            // to be resized
+            var layersDiv = document.getElementsByClassName('layersDiv')[0];  
+            if (layersDiv) {
+                var height = 0;
+                for (var layersDivIndex = 0;layersDivIndex < layersDiv.children.length;layersDivIndex++) {
+                    var layersChild = layersDiv.children[layersDivIndex];
+                    var clientHeight = layersChild.clientHeight || 0;
+                    height += clientHeight;
+                }
+        
+                layersDiv.style.height = height  + 'px';
+            }
+        }
+    },
+    
     minimizeControl: function(e) {
 
         // to minimize the control we set its div's width
@@ -52,8 +76,8 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
         this.clearLayersArray("data");
         
         // Save state -- for checking layer if the map state changed.
-        // We save this before redrawing, because in the process of redrawing
-        // we will trigger more visibility changes, and we want to not redraw
+        // Save this before redrawing, because the process of redrawing
+        // will trigger more visibility changes, and we want to not redraw
         // and enter an infinite loop.
         this.layerStates = new Array(layersLength);
         for (var layersIndex=0; layersIndex <layersLength; layersIndex++) {
@@ -80,7 +104,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                     labelSpan.style.textDecoration = "underline";
                 } else {
                     labelSpan.style.paddingLeft = '20px';
-                    if (!layer.inRange) {
+                    if (!layer.calculateInRange()) {
                         // While the layer is not in range, 
                         // we disable it visually
                         labelSpan.style.color = "gray";
@@ -90,7 +114,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 
                 // We can check this if the layer type is multilayer or if the 
                 // layer has visibility
-                var checked = (isMultiLayer && layer.getVisibility()) || layer.getVisibility();
+                var checked = layer.getVisibility();
                 
                 inputElem.id = this.id + "_input_" + layer.id;
                 inputElem.name = layer.id;
@@ -211,9 +235,15 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     
     onInputClick: function(event) {
         if (!this.inputElem.disabled) {
+            // Toggle the check
             this.inputElem.checked = !this.inputElem.checked;
+            
+            // Figure out the layer id from the input element div id 
             var layerId = this.inputElem.id.substring(this.inputElem.id.lastIndexOf('_input_') + 7);
+            
             if (this.layer.CLASS_NAME === 'OpenLayers.Layer') {
+                // This layer is not yet initialized so grab the remote info 
+                // and initialize it
                 this.layer.serviceObject.getRemoteLayerInfo({
                     serviceObject : this.layer.serviceObject,
                     scope : {
@@ -234,6 +264,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                     }
                 })
             } else {
+                // Didn't need a new layer so just update the map 
                 this.layerSwitcher.updateMap();
             }
         }
@@ -243,20 +274,25 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
     updateMap: function() {
         var parentMultiLayerChecked = true;
         
-        for(var i=0, len=this.dataLayers.length; i<len; i++) {
-            var layerEntry = this.dataLayers[i]; 
+        // Check the visibility of every layer and set it accordingly
+        for(var dataLayersIndex = 0, len=this.dataLayers.length; dataLayersIndex<len; dataLayersIndex++) {
+            var layerEntry = this.dataLayers[dataLayersIndex]; 
             
             if (layerEntry.layer.multiLayer) {
+                // A multilayer should always be the first layer with all its own
+                // layers following
                 parentMultiLayerChecked = layerEntry.inputElem.checked;
                 layerEntry.layer.setVisibility(parentMultiLayerChecked);
-                layerEntry.inputElem.checked = parentMultiLayerChecked;
             } else {
+                // If the parent layer is checked and the layer element is also checked,
+                // this layer should be visible
                 layerEntry.layer.setVisibility(parentMultiLayerChecked && layerEntry.inputElem.checked);
             }
             
-            this.layerStates[i] = {
+            // Update the layer states for this layer 
+            this.layerStates[dataLayersIndex] = {
                 id : layerEntry.layer.id,
-                inRange : layerEntry.layer.calculateInRange(),
+                inRange : layerEntry.layer.alwaysInRange || layerEntry.layer.calculateInRange(),
                 name : layerEntry.layer.name,
                 visibility : layerEntry.layer.getVisibility()
             }
@@ -278,6 +314,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 // If the layer exists in this multilayer object, it will be 
                 // replaced. Otherwise, nothing happens
                 var layerIndex = mapLayer.containsLayer('name', incomingLayer.name);
+                
                 if (layerIndex != -1) {
                     // Go ahead and remove these layers. 
                     // Remove the multilayer and the layer we're going to replace. 

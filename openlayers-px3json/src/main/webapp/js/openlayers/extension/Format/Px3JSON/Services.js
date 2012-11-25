@@ -329,7 +329,7 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
             
             minResolution = resolutions[0];
             maxResolution =  resolutions[resolutions.length - 1];
-            numZoomLevels = resolutions.length;//Math.floor(Math.log(maxResolution / minResolution) / Math.log(2)) + 1
+            numZoomLevels = resolutions.length;
             zIndex = this.drawOrder ? this.drawOrder : null;
         }
         
