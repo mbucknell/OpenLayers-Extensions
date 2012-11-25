@@ -1,15 +1,12 @@
-OpenLayers.Format.Px3JSON.PreviousSearchDataStore = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.PreviousSearchDataStore = OpenLayers.Class({
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.PreviousSearchDataStore (Px3 Viewer Unique, optional)
-    * 
-    * Previous Search Data Store Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.PreviousSearchDataStore
     * 
     * An object containing configuration information related to storing previous search text.
     * Note: to prevent storing any previous search text, remove this object from the configuration
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
    
     /**
@@ -24,6 +21,21 @@ OpenLayers.Format.Px3JSON.PreviousSearchDataStore = OpenLayers.Class(OpenLayers.
      */
     type: null,
     
+    options : null,
+    
+    /**
+     * Constructor: OpenLayers.Format.Px3JSON.PreviousSearchDataStore
+     * Construct an OpenLayers.Format.Px3JSON.PreviousSearchDataStore object
+     * 
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+        this.options = options;
+    },
+    
     /**
      * APIMethod: read
      * Read a JSON string into a OpenLayers.Format.Px3JSON.PreviousSearchDataStore object
@@ -36,6 +48,20 @@ OpenLayers.Format.Px3JSON.PreviousSearchDataStore = OpenLayers.Class(OpenLayers.
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.PreviousSearchDataStore(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.PreviousSearchDataStore"

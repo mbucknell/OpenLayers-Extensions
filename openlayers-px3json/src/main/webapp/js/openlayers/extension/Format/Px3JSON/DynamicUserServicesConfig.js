@@ -1,14 +1,11 @@
-OpenLayers.Format.Px3JSON.DynamicUserServicesConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.DynamicUserServicesConfig = OpenLayers.Class({
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.DynamicUserServicesConfig (Px3 Viewer Unique, for WMS services)
-    * 
-    * Dynamic User Services Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.DynamicUserServicesConfig
     * 
     * An object containing configuration information related to the selection results.
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
    
     /**
@@ -28,13 +25,6 @@ OpenLayers.Format.Px3JSON.DynamicUserServicesConfig = OpenLayers.Class(OpenLayer
      * {Number} The draw order dynamic services should have.
      */
     drawOrder: null,
-        
-    /**
-     * Property: opacity
-     * {Double} Optional. A number between 0 and 1 used to determine the 
-     * opacity of new dynamic user services.   
-     */ 
-    opacity : null,
         
     /**
      * Property: classification
@@ -60,9 +50,10 @@ OpenLayers.Format.Px3JSON.DynamicUserServicesConfig = OpenLayers.Class(OpenLayer
      */
     initialize: function(options) {
         OpenLayers.Util.applyDefaults(this, options);
-        if (options.opacity < 0) {
+        this.options = options;
+        if (this.options.opacity < 0) {
             this.opacity = 0;
-        } else if(options.opacity > 1) {
+        } else if(this.options.opacity > 1) {
             this.opacity = 1;
         }
     },
@@ -79,6 +70,20 @@ OpenLayers.Format.Px3JSON.DynamicUserServicesConfig = OpenLayers.Class(OpenLayer
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.DynamicUserServicesConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.DynamicUserServicesConfig"

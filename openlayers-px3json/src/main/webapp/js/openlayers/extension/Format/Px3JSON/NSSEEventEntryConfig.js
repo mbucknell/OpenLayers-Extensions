@@ -1,15 +1,12 @@
-OpenLayers.Format.Px3JSON.NSSEEventEntryConfig = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
+OpenLayers.Format.Px3JSON.NSSEEventEntryConfig = OpenLayers.Class({
 
     /**
-    * Class: OpenLayers.Format.Px3JSON.NSSEEventEntryConfig (Px3 Viewer Unique, event entry sites only)
-    * 
-    * NSSE Event Entry Configuration Object
+    * Class: OpenLayers.Format.Px3JSON.NSSEEventEntryConfig
     * 
     * An object containing configuration information related to the NSSE event entry form. 
     * This is included in the NGA Palanterra x3 Toolbox, but not used by USGS The National Map
     * 
-    * @requires OpenLayers/Format/Px3JSON.js
-    * @see https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
+    * More info @ https://my.usgs.gov/confluence/download/attachments/67862566/Configuring+Config_USGS_TNM.json.pdf
     */
    
     /**
@@ -24,12 +21,6 @@ OpenLayers.Format.Px3JSON.NSSEEventEntryConfig = OpenLayers.Class(OpenLayers.For
      */
     nsseEventsLayerId: null,
      
-     /**
-      * Property: nsseEventsTimeServiceId
-      * {String} Id of the map service used to display time visualization of NSSE events.
-      */
-    nsseEventsTimeServiceId : null,
-    
     /**
      * Property: featureServiceUrl
      * {String} URL to the feature service used for editing NSSE events features. An example is:
@@ -44,6 +35,21 @@ OpenLayers.Format.Px3JSON.NSSEEventEntryConfig = OpenLayers.Class(OpenLayers.For
      */
     locator: null,
     
+    options : null,
+    
+    /**
+     * Constructor: OpenLayers.Format.Px3JSON.NSSEEventEntryConfig
+     * Construct an OpenLayers.Format.Px3JSON.NSSEEventEntryConfig object
+     * 
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.applyDefaults(this, options);
+        this.options = options;
+    },
+    
     /**
      * APIMethod: read
      * Read a JSON string into a OpenLayers.Format.Px3JSON.NSSEEventEntryConfig object
@@ -56,6 +62,20 @@ OpenLayers.Format.Px3JSON.NSSEEventEntryConfig = OpenLayers.Class(OpenLayers.For
      */
     read : function(json) {
         return new OpenLayers.Format.Px3JSON.NSSEEventEntryConfig(OpenLayers.Format.JSON.prototype.read.apply(this, [json]));
+    },
+    
+    /**
+     * Method: isValidType
+     * Check if an object is a valid representative of the given type.
+     * 
+     * Parameters:
+     * obj - {Object} An initialized object of this type
+     * 
+     * Returns:
+     * {Boolean} The object is valid object of the given type.
+     */
+    isValidType : function(obj) {
+        return true;
     },
     
     CLASS_NAME: "OpenLayers.Format.Px3JSON.NSSEEventEntryConfig"
