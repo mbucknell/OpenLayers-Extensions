@@ -2,6 +2,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     alwaysInRange : true,
     sphericalMercator: true,
     numZoomLevels : undefined,
+    multiLayer : true,
     destroy: function() {
         if (this.map != null) {
             var l = this.options.layers;
@@ -26,15 +27,20 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
         var result = [];
         for (var layersIndex = 0;layersIndex < this.layers.length;layersIndex++){
             var layer = this.layers[layersIndex];
-            var scales = layer.scales || [];
-            for (var scalesIndex = 0;scalesIndex < scales.length;scalesIndex++) {
-                var scale = scales[scalesIndex];
-                if (scale !== null && result.indexOf(scale) == -1) {
-                    result.push(scale);
+            var scales = [];
+            if (layer) {
+                scales = layer.scales || scales;
+                for (var scalesIndex = 0;scalesIndex < scales.length;scalesIndex++) {
+                    var scale = scales[scalesIndex];
+                    if (scale !== null && result.indexOf(scale) == -1) {
+                        result.push(scale);
+                    }
                 }
             }
         }
-        return result.sort(function(a,b){return a > b}); 
+        return result.sort(function(a,b){
+            return a > b
+            }); 
     },
     
     getNumZoomLevels : function() {
@@ -64,7 +70,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     },
     
     toggleLayers: function() {
-       	var z = this.map.getZoom();
+        var z = this.map.getZoom();
         var l = this.options.layers;
         for (var i = 0; i < l.length; i++) {
             if (l[i].minZoom <= z && l[i].maxZoom >= z) {
@@ -79,7 +85,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
                     l[i].setVisibility(false);
                 }
             }
-       	}
+        }
     },
     
     getBounds: function() {
@@ -92,7 +98,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
             } else {
                 bounds.add(layerBounds);
             }
-       	}
+        }
         return bounds;
     },
     

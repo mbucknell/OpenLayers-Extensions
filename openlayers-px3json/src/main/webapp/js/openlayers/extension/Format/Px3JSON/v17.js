@@ -363,15 +363,15 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
     }, 
     
     createNationalMapMultiLayersObject : function(params) {
-        var backgroundServiceLayers = params.backgroundServiceLayers;
+        var serviceLayers = params.serviceLayers;
         var serviceGroup = params.serviceGroup;
-        var serviceGroupId = serviceGroup.serviceGroupId;
+        var serviceGroupId = serviceGroup.serviceGroupId || serviceGroup.id;
         var layerNames = this.serviceGroups[serviceGroupId].serviceIds;
         var layers = [], scales = [];
         var multiLayer;
                 
         for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
-            layers.push(backgroundServiceLayers[layerNames[layerNamesIdx]]);
+            layers.push(serviceLayers[layerNames[layerNamesIdx]]);
         }
                 
         multiLayer = new OpenLayers.Layer.NationalMapMulti(
@@ -386,6 +386,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         scales = multiLayer.getScales();
         for (var serviceLayersIdx = 0;serviceLayersIdx < layers.length;serviceLayersIdx++) {
             var serviceLayer = layers[serviceLayersIdx];
+            if (!serviceLayer) {
+                var a= 1;
+            }
             if (!serviceLayer.minZoom && !serviceLayer.maxZoom && serviceLayer.scales) {
                 var minScale = serviceLayer.scales[0]
                 var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
@@ -403,7 +406,10 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         return multiLayer;
     },
     
-    createBackgroundServiceLayerNames :  function() {
+    /**
+     * Returns a list of the layer names that are background services
+     */
+    getBackgroundServiceLayerNames :  function() {
         var backgroundServiceLayerNames = [];
 
         for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
@@ -424,43 +430,89 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         return backgroundServiceLayerNames;
     },
     
-    createBackgroundServicesObject : function(params) {
+    getNonBackgroundServiceLayerNames : function() {
+        
+        var nonBackgroundServiceLayerNames = [];
+        var backgrounsServicesLayerNames = this.getBackgroundServiceLayerNames();
+        
+        for (var key in this.services) {
+            if (backgrounsServicesLayerNames.indexOf(key) == -1) {
+                nonBackgroundServiceLayerNames.push(key)
+            }
+        }
+        
+        return nonBackgroundServiceLayerNames;
+    },
+    
+    createServicesObject : function(params) {
+        var completedCallbacks = params.completedCallbacks;
         var backgroundServiceLayers = params.backgroundServiceLayers || {};
-        var backgroundServiceLayerNames = params.backgroundServiceLayerNames || this.createBackgroundServiceLayerNames();
+        var backgroundServiceLayerNames = params.backgroundServiceLayerNames || this.getBackgroundServiceLayerNames();
         var backgroundServiceLayersCount = Object.keys(backgroundServiceLayers).length;
-        var completedCallback = params.completedCallback;
         var px3jsonObject = params.px3jsonObject || this;
-        var useTNMLayers = params.useTNMLayers;
+        var useTNMLayers = params.useTNMLayers || false;
         var autoParseArcGISCache = params.autoParseArcGISCache;
         
-        if (useTNMLayers == undefined) useTNMLayers = false;
         if (autoParseArcGISCache == undefined) autoParseArcGISCache = true;
         
+        // Have we completed filling out our background services object? 
         if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
             var multiLayerArray = [];
+            var backgroundServiceGroupIds = [];
             for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
                 multiLayerArray.push(this.createNationalMapMultiLayersObject({
-                    backgroundServiceLayers : backgroundServiceLayers,
+                    serviceLayers : backgroundServiceLayers,
                     serviceGroup : px3jsonObject.mapConfig.backgroundMaps[backgroundMapsIdx]
                 }));
+                backgroundServiceGroupIds.push(px3jsonObject.mapConfig.backgroundMaps[backgroundMapsIdx].serviceGroupId);
+            }
+            
+            // Create the rest of the service groups - these will be dummy layers. We 
+            // leave it up to the client to decide how to handle these. 
+            // In our case, the layer switcher, when seeing a dummy layer, will then
+            // create the actual layer using remote calls
+            for (var serviceGroupName in this.serviceGroups) {
+                if (backgroundServiceGroupIds.indexOf(serviceGroupName) == -1) {
+                    var serviceIds = this.serviceGroups[serviceGroupName].serviceIds;
+                    var serviceLayers = {};
+                    for (var serviceIdsIndex = 0;serviceIdsIndex < serviceIds.length;serviceIdsIndex++) {
+                        var service = this.services[serviceIds[serviceIdsIndex]];
+                        var layer = service.createLayer();
+                        serviceLayers[layer.id] = layer;
+                    }
+                    multiLayerArray.push(this.createNationalMapMultiLayersObject({
+                        serviceLayers : serviceLayers,
+                        serviceGroup : this.serviceGroups[serviceGroupName]
+                    }));
+                }
             }
         
-            completedCallback({
-                backgroundMaps : multiLayerArray,
-                px3jsonObject : px3jsonObject
-            })
+            for (var completedCallbacksIndex = 0;completedCallbacksIndex < completedCallbacks.length;completedCallbacksIndex++) {
+                var completedCallback = completedCallbacks[completedCallbacksIndex];
+                completedCallback({
+                    serviceGroups : multiLayerArray,
+                    px3jsonObject : px3jsonObject
+                })
+            }
             
         } else {
+            // We've not yet completed filling out our background service layers
+            
+            // Pick up the name of the next background service we'd like to fill
             var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
+            
+            // Pull the service object for that layer 
             var serviceObject = this.services[backgroundServiceLayerName];
         
+            // Based on that layer's URL, we pull info for that 
+            // layer from the remote server
             OpenLayers.Request.GET({
                 url: serviceObject.url + '/?f=json&pretty=true',
                 scope: {
                     that : this,
                     backgroundServiceLayers : backgroundServiceLayers,
                     px3jsonObject : this,
-                    completedCallback : params.completedCallback,
+                    completedCallbacks : params.completedCallbacks,
                     backgroundServiceLayerNames : backgroundServiceLayerNames,
                     backgroundServiceLayerName : backgroundServiceLayerName,
                     serviceObject : serviceObject,
@@ -469,24 +521,28 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                 },
                 success: function(request) {
                     var doc = request.responseXML;
-        
                     if (!doc || !doc.documentElement) {
                         doc = request.responseText;
                     }
                     var parsedResponse = (new OpenLayers.Format.JSON).read(doc);
                 
+                    // We now have the remote metadata for this layer. Let's create that layer
                     var layer = this.serviceObject.createLayer({
                         parsedResponse : parsedResponse,
                         serviceObject : serviceObject,
                         useTNMLayers : this.useTNMLayers,
                         autoParseArcGISCache : this.autoParseArcGISCache
                     })
+                    
+                    // This should be refactored out if we're going to genericize this function
+                    // to handle background layers and non-background laters
                     this.backgroundServiceLayers[this.backgroundServiceLayerName] = layer;
                 
-                    this.px3jsonObject.createBackgroundServicesObject({
+                    // Loop back into the function we're in in order to make the next layer
+                    this.px3jsonObject.createServicesObject({
                         backgroundServiceLayers : this.backgroundServiceLayers,
                         px3jsonObject : this.px3jsonObject,
-                        completedCallback : this.completedCallback,
+                        completedCallbacks : this.completedCallbacks,
                         backgroundServiceLayerNames : this.backgroundServiceLayerNames,
                         useTNMLayers : this.useTNMLayers,
                         autoParseArcGISCache : this.autoParseArcGISCache
@@ -494,6 +550,7 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                     
                 },
                 failure : function(response, options) {
+                    // I've not yet decided how to handle failed responses
                     console.log("Layer could not be created");
                 }
             });
@@ -501,11 +558,11 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
     
     },
     
-    createServiceLayers : function() {
+    createServiceLayers : function(params) {
         var result = {};
         for (var serviceLayerId in this.services) {
             var serviceObject = this.services[serviceLayerId];
-            var serviceLayer = serviceObject.createLayer();
+            var serviceLayer = serviceObject.createLayer(params);
             result[serviceLayerId] = serviceLayer;
         }
         return result;
