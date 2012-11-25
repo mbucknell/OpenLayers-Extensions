@@ -3,3 +3,4 @@
 <script type="text/javascript" src="${param['relPath']}js/openlayers/extension/Layer/NationalMapXYZ.js"></script>
 <script type="text/javascript" src="${param['relPath']}js/openlayers/extension/Layer/NationalMapTile.js"></script>
 <script type="text/javascript" src="${param['relPath']}js/openlayers/extension/Layer/NationalMapWMS.js"></script>
+<script type="text/javascript" src="${param['relPath']}js/openlayers/extension/Control/MultiLayerSwitcher.js"></script>
