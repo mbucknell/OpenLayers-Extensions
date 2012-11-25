@@ -362,33 +362,41 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         }
     }, 
     
-    createNationalMapMultiLayersObject : function() {
-        var nationalMapLayersObject = {};
-    
-        for (var serviceGroupsKey in this.serviceGroups) {
-            var serviceGroup = this.serviceGroups[serviceGroupsKey];
-            var serviceIds = serviceGroup.serviceIds;
-            var serviceLayers = [];
-            for (var serviceIdsIdx = 0;serviceIdsIdx < serviceIds.length;serviceIdsIdx++) {
-                var serviceId = serviceIds[serviceIdsIdx];
-                var serviceObject = this.services[serviceId];
-                var serviceLayer = serviceObject.createLayer();
-                serviceLayers.push(serviceLayer);
-            }
-            
-            var multiLayer = new OpenLayers.Layer.NationalMapMulti(
-                serviceGroupsKey,
-                {
-                    layers : serviceLayers,
-                    isBaseLayer : false
-                }
-                )
+    createNationalMapMultiLayersObject : function(params) {
+        var backgroundServiceLayers = params.backgroundServiceLayers;
+        var serviceGroup = params.serviceGroup;
+        var serviceGroupId = serviceGroup.serviceGroupId;
+        var layerNames = this.serviceGroups[serviceGroupId].serviceIds;
+        var layers = [], scales = [];
+        var multiLayer;
                 
-            nationalMapLayersObject[serviceGroupsKey] = multiLayer;
-                    
+        for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
+            layers.push(backgroundServiceLayers[layerNames[layerNamesIdx]]);
         }
-    
-        return nationalMapLayersObject;
+                
+        multiLayer = new OpenLayers.Layer.NationalMapMulti(
+            serviceGroup.displayName,
+            {
+                layers : layers,
+                isBaseLayer : false
+            }
+            )
+                        
+        scales = multiLayer.getScales();
+        for (var serviceLayersIdx = 0;serviceLayersIdx < layers.length;serviceLayersIdx++) {
+            var serviceLayer = layers[serviceLayersIdx];
+            if (!serviceLayer.minZoom && !serviceLayer.maxZoom) {
+                var minScale = serviceLayer.scales[0]
+                var maxScale = serviceLayer.scales[serviceLayer.scales.length - 1];
+                var minZoom = scales.indexOf(minScale) < 0 ? 0 : scales.indexOf(minScale);
+                var maxZoom = scales.indexOf(maxScale);
+                multiLayer.layers[serviceLayersIdx].minZoom = minZoom;
+                multiLayer.layers[serviceLayersIdx].maxZoom = maxZoom;
+                multiLayer.layers[serviceLayersIdx].minScale = minScale;
+                multiLayer.layers[serviceLayersIdx].maxScale = maxScale;
+            }
+        }
+        return multiLayer;
     },
     
     createBackgroundServiceLayerNames :  function() {
@@ -417,44 +425,31 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
         var backgroundServiceLayerNames = params.backgroundServiceLayerNames || this.createBackgroundServiceLayerNames();
         var backgroundServiceLayersCount = Object.keys(backgroundServiceLayers).length;
         var completedCallback = params.completedCallback;
-        var parsedJSONObject = params.parsedJSONObject || this;
+        var px3jsonObject = params.px3jsonObject || this;
     
         if (backgroundServiceLayersCount === backgroundServiceLayerNames.length) {
             var multiLayerArray = [];
             for (var backgroundMapsIdx = 0;backgroundMapsIdx < this.mapConfig.backgroundMaps.length;backgroundMapsIdx++) {
-                var backgroundMap = parsedJSONObject.mapConfig.backgroundMaps[backgroundMapsIdx];
-                var serviceGroupId = backgroundMap.serviceGroupId;
-                var layerNames = parsedJSONObject.serviceGroups[serviceGroupId].serviceIds;
-                var layers = [];
-                
-                for (var layerNamesIdx = 0;layerNamesIdx < layerNames.length;layerNamesIdx++) {
-                    layers.push(backgroundServiceLayers[layerNames[layerNamesIdx]]);
-                }
-            
-                var multiLayer = new OpenLayers.Layer.NationalMapMulti(
-                    backgroundMap.displayName,
-                    {
-                        layers : layers,
-                        isBaseLayer : false
-                    }
-                    )
-                multiLayerArray.push(multiLayer);
+                multiLayerArray.push(this.createNationalMapMultiLayersObject({
+                    backgroundServiceLayers : backgroundServiceLayers,
+                    serviceGroup : px3jsonObject.mapConfig.backgroundMaps[backgroundMapsIdx]
+                }));
             }
         
             completedCallback({
                 backgroundMaps : multiLayerArray,
-                parsedJSONObject : parsedJSONObject
+                px3jsonObject : px3jsonObject
             })
         } else {
             var backgroundServiceLayerName = backgroundServiceLayerNames[backgroundServiceLayersCount];
             var serviceObject = this.services[backgroundServiceLayerName];
         
             OpenLayers.Request.GET({
-                url: serviceObject.url + '/?f=json',
+                url: serviceObject.url + '/?f=json&pretty=true',
                 scope: {
                     that : this,
                     backgroundServiceLayers : backgroundServiceLayers,
-                    parsedJSONObject : this,
+                    px3jsonObject : this,
                     completedCallback : params.completedCallback,
                     backgroundServiceLayerNames : backgroundServiceLayerNames,
                     backgroundServiceLayerName : backgroundServiceLayerName,
@@ -474,9 +469,9 @@ OpenLayers.Format.Px3JSON.v17 = OpenLayers.Class(OpenLayers.Format.Px3JSON, {
                     })
                     this.backgroundServiceLayers[this.backgroundServiceLayerName] = layer;
                 
-                    this.parsedJSONObject.createBackgroundServicesObject({
+                    this.px3jsonObject.createBackgroundServicesObject({
                         backgroundServiceLayers : this.backgroundServiceLayers,
-                        parsedJSONObject : this.parsedJSONObject,
+                        px3jsonObject : this.px3jsonObject,
                         completedCallback : this.completedCallback,
                         backgroundServiceLayerNames : this.backgroundServiceLayerNames
                     })
