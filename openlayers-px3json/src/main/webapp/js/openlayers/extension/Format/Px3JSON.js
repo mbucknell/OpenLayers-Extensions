@@ -50,5 +50,18 @@ OpenLayers.Format.Px3JSON = OpenLayers.Class(OpenLayers.Format.JSON, {
         return true;
     },
     
+    resolutionsFromScales : function(scales, units) {
+        if(scales == null) {
+            return null;
+        }
+        var resolutions, i, len;
+        len = scales.length;
+        resolutions = new Array(len);
+        for(i=0; i<len; i++) {
+            resolutions[i] = OpenLayers.Util.getResolutionFromScale(scales[i], units);
+        }
+        return resolutions;
+    },
+    
     CLASS_NAME: "OpenLayers.Format.Px3JSON"
 });     

@@ -28,7 +28,7 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
             var scales = layer.scales || [];
             for (var scalesIndex = 0;scalesIndex < scales.length;scalesIndex++) {
                 var scale = scales[scalesIndex];
-                if (scale != null && result.indexOf(scale) == -1) {
+                if (scale !== null && result.indexOf(scale) == -1) {
                     result.push(scale);
                 }
             }
@@ -63,10 +63,11 @@ OpenLayers.Layer.NationalMapMulti = OpenLayers.Class(OpenLayers.Layer, {
     toggleLayers: function() {
        	var z = this.map.getZoom();
         var l = this.options.layers;
+        var r = this.map.getResolution();
         var removeLayer = null;
         for (var i = 0; i < l.length; i++) {
             if (l[i].minZoom <= z && l[i].maxZoom >= z) {
-
+//            if (r >= l[i].resolutions && r <= l[i].resolutions[l[i].resolutions.length]) {
                 if (!this.map.getLayer(l[i].id)) {
                     this.map.addLayer(l[i]);
                     l[i].setZIndex(this.getZIndex());
