@@ -196,13 +196,18 @@ OpenLayers.Format.Px3JSON.Services = OpenLayers.Class(OpenLayers.Format.Px3JSON,
         if (params.parsedResponse) {
             return this.createLayerUsingRemoteMetadata(params);
         } else {
-            return new OpenLayers.Layer(this.displayName, {
-                id : this.id, 
-                serviceObject : this, 
-                numZoomLevels : 0,
-                resolutions : [],
-                scales : []
-            })
+            var result = new OpenLayers.Layer(
+                this.displayName, {
+                    serviceObject : this, 
+                    numZoomLevels : 0,
+                    resolutions : [],
+                    scales : [],
+                    minZoom : 0,
+                    maxZoom : 0,
+                    displayInLayerSwitcher : true,
+                    alwaysInRange : true
+                })
+            return result;
         }
     },
     

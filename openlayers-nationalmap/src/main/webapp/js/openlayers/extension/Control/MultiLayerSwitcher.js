@@ -55,7 +55,7 @@ OpenLayers.Control.MultiLayerSwitcher =  OpenLayers.Class(OpenLayers.Control.Lay
                 // We can check this if the layer type is multilayer or if the 
                 // layer has visibility
                 var checked = (isMultiLayer && layer.getVisibility()) || layer.getVisibility();
-    
+                
                 inputElem.id = this.id + "_input_" + layer.id;
                 inputElem.name = layer.id;
                 inputElem.value = layer.name;
