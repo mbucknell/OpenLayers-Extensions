@@ -17,7 +17,7 @@
         <dependency>
             <groupId>gov.usgs.cida.jslibs</groupId>
             <artifactId>openlayers</artifactId>
-            <version>2.12-3-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
