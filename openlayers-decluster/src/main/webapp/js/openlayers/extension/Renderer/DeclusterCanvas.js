@@ -412,7 +412,7 @@ OpenLayers.Renderer.DeclusterCanvas = OpenLayers.Class(OpenLayers.Renderer.Canva
                     feature = this.clusterFeatures[id][0];
                     geometry = feature.geometry;
                     this.calculateFeatureDx(geometry.getBounds(), worldBounds);
-                    style = this.clusterFeatures[id][1];
+                    style = this.features[id][1];
                     this.drawClusterPoint(geometry, style, feature.id);
                     if(style.label) {
                         labelMap.push([feature, style]);
