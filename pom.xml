@@ -21,19 +21,19 @@
     <url>http://openlayer.org</url>
     
     <properties>
-        <cida.maven.url>http://cida-wiwsc-maven.er.usgs.gov:8080/maven</cida.maven.url>
+        <cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
     </properties>
     
     <distributionManagement>
         <repository>
             <id>cida-releases</id>
             <name>CIDA Releases</name>
-            <url>${cida.maven.url}/content/repositories/cida-releases/</url>
+            <url>${cida.maven.url}/content/repositories/cida-public-releases/</url>
         </repository>
         <snapshotRepository>
             <id>cida-snapshots</id>
             <name>CIDA Snapshots</name>
-            <url>${cida.maven.url}/content/repositories/cida-snapshots/</url>
+            <url>${cida.maven.url}/content/repositories/cida-public-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
     <repositories>
