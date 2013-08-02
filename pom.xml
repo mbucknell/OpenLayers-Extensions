@@ -1,69 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>gov.usgs.cida.jslibs</groupId>
-    <artifactId>openlayers-parent</artifactId>
-    <packaging>pom</packaging>
-    <version>2.12-5-SNAPSHOT</version>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>gov.usgs.cida.jslibs</groupId>
+	<artifactId>openlayers-parent</artifactId>
+	<packaging>pom</packaging>
+	<version>2.12-5-SNAPSHOT</version>
 
-    <modules>
-        <module>openlayers</module>
-        <!-- put extensions / modifications here -->
-        <module>openlayers-cql</module>
-        <module>openlayers-nationalmap</module>
-        <module>openlayers-px3json</module>
-        <module>openlayers-decluster</module>
-        <module>openlayers-raster</module>
+	<modules>
+		<module>openlayers</module>
+		<!-- put extensions / modifications here -->
+		<module>openlayers-cql</module>
+		<module>openlayers-nationalmap</module>
+		<module>openlayers-px3json</module>
+		<module>openlayers-decluster</module>
+		<module>openlayers-raster</module>
 		<module>openlayers-require</module>
-    </modules>
+	</modules>
 
-    <name>Openlayers Parent</name>
-    <url>http://openlayer.org</url>
+	<name>Openlayers Parent</name>
+	<url>http://openlayer.org</url>
+	
+	<licenses>
+		<license>
+			<name>Public Domain</name>
+			<url>http://en.wikipedia.org/wiki/Public_domain_software</url>
+			<comments>
+				All work of the US Government enter into the Public Domain within
+				the United States.  Whether that work is public domain outside of
+				the United States depends on various factors.
+			</comments>
+		</license>
+	</licenses>
     
-    <properties>
-        <cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
-    </properties>
+	<properties>
+		<cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
+	</properties>
     
-    <distributionManagement>
-        <repository>
-            <id>cida-releases</id>
-            <name>CIDA Releases</name>
-            <url>${cida.maven.url}/content/repositories/cida-public-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>cida-snapshots</id>
-            <name>CIDA Snapshots</name>
-            <url>${cida.maven.url}/content/repositories/cida-public-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-    <repositories>
-        <repository>
-            <id>nexus</id>
-            <name>CIDA Nexus</name>
-            <url>${cida.maven.url}/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>cida-snapshots</id>
-            <name>CIDA Nexus Snapshots</name>
-            <url>${cida.maven.url}/content/groups/public-snapshots/</url>
-        </repository>
-    </repositories>
-    <scm>
-        <connection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</connection>
-        <developerConnection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</developerConnection>
-    </scm>
+	<distributionManagement>
+		<repository>
+			<id>cida-releases</id>
+			<name>CIDA Releases</name>
+			<url>${cida.maven.url}/content/repositories/cida-public-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>cida-snapshots</id>
+			<name>CIDA Snapshots</name>
+			<url>${cida.maven.url}/content/repositories/cida-public-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>nexus</id>
+			<name>CIDA Nexus</name>
+			<url>${cida.maven.url}/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>cida-snapshots</id>
+			<name>CIDA Nexus Snapshots</name>
+			<url>${cida.maven.url}/content/groups/public-snapshots/</url>
+		</repository>
+	</repositories>
+	<scm>
+		<connection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</connection>
+		<developerConnection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</developerConnection>
+	</scm>
     
     
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>2.1.1</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
         
 </project>
