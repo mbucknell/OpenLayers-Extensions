@@ -7,7 +7,6 @@
         <version>2.12-5-SNAPSHOT</version>
     </parent>
 
-    <groupId>gov.usgs.cida.jslibs</groupId>
     <artifactId>openlayers-nationalmap</artifactId>
     <packaging>war</packaging>
     <name>openlayers-nationalmap</name>
