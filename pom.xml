@@ -101,8 +101,8 @@
 	
 	<scm>
 		<url>https://github.com/USGS-CIDA/OpenLayers-Extensions</url>
-		<connection>scm:git:git//github.com:USGS-CIDA/OpenLayers-Extensions.git</connection>
-		<developerConnection>scm:git:git//github.com:USGS-CIDA/OpenLayers-Extensions.git</developerConnection>
+		<connection>scm:git:git@github.com:USGS-CIDA/OpenLayers-Extensions.git</connection>
+		<developerConnection>scm:git:git@github.com:USGS-CIDA/OpenLayers-Extensions.git</developerConnection>
 	</scm>
     
     
