@@ -75,29 +75,32 @@
 		<url>http://igsarm-cida-hudson1.er.usgs.gov:8080/hudson/job/Openlayers/</url>
 	</ciManagement>
 	
-	<properties>
-		<cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
-	</properties>
-    
 	<distributionManagement>
 		<repository>
-			<id>cida-releases</id>
+			<id>cida-public-releases</id>
 			<name>CIDA Releases</name>
-			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-releases</url>
+			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-public-releases</url>
 		</repository>
 		<snapshotRepository>
-			<id>cida-snapshots</id>
+			<id>cida-public-snapshots</id>
 			<name>CIDA Snapshots</name>
-			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-snapshots</url>
+			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-public-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 	<repositories>
 		<repository>
 			<id>cida-public</id>
 			<name>CIDA Public Nexus</name>
-			<url>https://cida.usgs.gov/maven/cida-public</url>
+			<url>http://cida.usgs.gov/maven/cida-public/</url>
 		</repository>
 	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>cida-public</id>
+			<name>CIDA Public Plugin repo</name>
+			<url>http://cida.usgs.gov/maven/cida-public/</url>
+		</pluginRepository>
+	</pluginRepositories>
 	
 	<scm>
 		<url>https://github.com/USGS-CIDA/OpenLayers-Extensions</url>
