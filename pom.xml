@@ -13,11 +13,50 @@
 		<module>openlayers-px3json</module>
 		<module>openlayers-decluster</module>
 		<module>openlayers-raster</module>
-    <module>format-extensions</module>
-  </modules>
+		<module>format-extensions</module>
+	</modules>
 
 	<name>Openlayers Parent</name>
-	<url>http://openlayer.org</url>
+	
+	<url>http://cida.usgs.gov</url>
+	<inceptionYear>2010</inceptionYear>
+	<organization>
+		<name>Center for Integrated Data Analytics</name>
+		<url>http://cida.usgs.gov</url>
+	</organization>    
+	<developers>
+		<developer>
+			<name>Jordan Walker</name>
+			<email>jiwalker@usgs.gov</email>
+			<id>jiwalker</id>
+			<organization>Center for Integrated Data Analytics</organization>
+			<organizationUrl>http://cida.usgs.gov</organizationUrl>
+			<timezone>-6</timezone>
+		</developer>
+		<developer>
+			<name>Ivan Suftin</name>
+			<email>isuftin@usgs.gov</email>
+			<id>isuftin</id>
+			<organization>Center for Integrated Data Analytics</organization>
+			<organizationUrl>http://cida.usgs.gov</organizationUrl>
+			<timezone>-6</timezone>
+		</developer>
+		<developer>
+			<name>David Sibley</name>
+			<email>dmsibley@usgs.gov</email>
+			<id>dmsibley</id>
+			<organization>Center for Integrated Data Analytics</organization>
+			<organizationUrl>http://cida.usgs.gov</organizationUrl>
+			<timezone>-6</timezone>
+		</developer>
+		<developer>
+			<name>Tom Kunicki</name>
+			<id>tkunicki</id>
+			<organization>Center for Integrated Data Analytics</organization>
+			<organizationUrl>http://cida.usgs.gov</organizationUrl>
+			<timezone>-6</timezone>
+		</developer>
+	</developers>
 	
 	<licenses>
 		<license>
@@ -30,7 +69,12 @@
 			</comments>
 		</license>
 	</licenses>
-    
+	
+	<ciManagement>
+		<system>Hudson</system>
+		<url>http://igsarm-cida-hudson1.er.usgs.gov:8080/hudson/job/Openlayers/</url>
+	</ciManagement>
+	
 	<properties>
 		<cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
 	</properties>
@@ -39,29 +83,26 @@
 		<repository>
 			<id>cida-releases</id>
 			<name>CIDA Releases</name>
-			<url>${cida.maven.url}/content/repositories/cida-public-releases/</url>
+			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>cida-snapshots</id>
 			<name>CIDA Snapshots</name>
-			<url>${cida.maven.url}/content/repositories/cida-public-snapshots/</url>
+			<url>https://internal.cida.usgs.gov/maven/content/repositories/cida-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 	<repositories>
 		<repository>
-			<id>nexus</id>
-			<name>CIDA Nexus</name>
-			<url>${cida.maven.url}/content/groups/public/</url>
-		</repository>
-		<repository>
-			<id>cida-snapshots</id>
-			<name>CIDA Nexus Snapshots</name>
-			<url>${cida.maven.url}/content/groups/public-snapshots/</url>
+			<id>cida-public</id>
+			<name>CIDA Public Nexus</name>
+			<url>https://cida.usgs.gov/maven/cida-public</url>
 		</repository>
 	</repositories>
+	
 	<scm>
-		<connection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</connection>
-		<developerConnection>scm:svn:https://cida-svn.er.usgs.gov/repos/dev/js_lib/maven/openlayers-parent/trunk</developerConnection>
+		<url>https://github.com/USGS-CIDA/OpenLayers-Extensions</url>
+		<connection>scm:git:git@github.com:USGS-CIDA/OpenLayers-Extensions.git</connection>
+		<developerConnection>scm:git:git@github.com:USGS-CIDA/OpenLayers-Extensions.git</developerConnection>
 	</scm>
     
     
@@ -71,7 +112,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-war-plugin</artifactId>
-					<version>2.1.1</version>
+					<version>2.4</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
