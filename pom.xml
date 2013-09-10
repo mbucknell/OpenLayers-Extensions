@@ -7,7 +7,6 @@
 	<version>2.12-5-SNAPSHOT</version>
 
 	<modules>
-		<module>openlayers</module>
 		<!-- put extensions / modifications here -->
 		<module>openlayers-cql</module>
 		<module>openlayers-nationalmap</module>
