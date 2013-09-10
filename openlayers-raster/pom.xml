@@ -1,0 +1,26 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>openlayers-parent</artifactId>
+        <groupId>gov.usgs.cida.jslibs</groupId>
+        <version>2.12-5-SNAPSHOT</version>
+    </parent>
+    
+    <artifactId>openlayers-raster</artifactId>
+    <packaging>war</packaging>
+    <name>openlayers-raster</name>
+    <description>
+        This module relies on openlayers-base, should perhaps be overlay.
+        For now just overlay this one after openlayers-base
+    </description>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
