@@ -39,5 +39,13 @@
                 </executions>
             </plugin>
         </plugins>
-    </build> 
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>gov.usgs.cida.jslibs</groupId>
+            <artifactId>openlayers-raster</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+    </dependencies> 
 </project>
