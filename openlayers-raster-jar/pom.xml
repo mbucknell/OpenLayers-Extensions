@@ -30,7 +30,7 @@
                         <configuration>
                             <target>
                                 <echo message="copy files from openlayers-raster" />
-                                <copy todir="${project.build.outputDirectory}/META-INF/resources/gov.usgs.cida.jslibs">
+                                <copy todir="${project.build.outputDirectory}/META-INF/resources/gov.usgs.cidajslibs">
                                     <fileset dir="../openlayers-raster/src/main/webapp/js/"/>
                                 </copy>
                             </target>
@@ -38,25 +38,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.3.2</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.5.1</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>sonatype-nexus-staging</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build> 
 </project>
