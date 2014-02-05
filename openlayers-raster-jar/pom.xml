@@ -4,7 +4,7 @@
     <parent>
         <artifactId>openlayers-parent</artifactId>
         <groupId>gov.usgs.cida.jslibs</groupId>
-        <version>2.12-8-SNAPSHOT</version>
+        <version>2.12-8</version>
     </parent>
     
     <artifactId>openlayers-raster-jar</artifactId>
@@ -31,7 +31,7 @@
                             <target>
                                 <echo message="copy files from openlayers-raster" />
                                 <copy todir="${project.build.outputDirectory}/META-INF/resources/gov.usgs.cida.jslibs">
-                                    <fileset dir="../openlayers-raster/src/main/webapp/js/"/>
+                                    <fileset dir="../openlayers-raster/src/main/webapp/js/" />
                                 </copy>
                             </target>
                         </configuration>
