@@ -234,7 +234,7 @@ OpenLayers.Raster.Composite.fromGridLayer = function(layer, options) {
     });
 
     function deferredUpdate() {
-        window.setTimeout(update, 0);
+        window.setTimeout(update, 500);
     }
 
     function update() {
