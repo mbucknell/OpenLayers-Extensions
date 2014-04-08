@@ -234,7 +234,7 @@ OpenLayers.Raster.Composite.fromGridLayer = function(layer, options) {
     });
 
     function deferredUpdate() {
-        window.setTimeout(update, 0);
+        window.setTimeout(update, 500);
     }
 
     function update() {
@@ -275,8 +275,11 @@ OpenLayers.Raster.Composite.fromGridLayer = function(layer, options) {
                             var dy = underwritey > 0 ? 0 : cornerPixel.y;
                             var dw = tileSize.w - underwritex - overwritex;
                             var dh = tileSize.h - underwritey - overwritey;
-                            
-                            context.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+                            try {
+                                context.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+                            } catch (err) {
+                                OpenLayers.Console.warn(err);
+                            }
                         }
                     }
                 }
