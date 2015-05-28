@@ -37,6 +37,7 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
         gmd: "http://www.isotc211.org/2005/gmd",
         srv: "http://www.isotc211.org/2005/srv",
         gml: "http://www.opengis.net/gml",
+        gml32: "http://www.opengis.net/gml/3.2",
         ogc: "http://www.opengis.net/ogc",
         ows: "http://www.opengis.net/ows"
 
@@ -584,6 +585,18 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
             }
         },
         "gml": { // TODO: should be elsewhere
+            "TimePeriod": function(node, obj) {
+                obj.TimePeriod = {};
+                this.readChildNodes(node, obj.TimePeriod);
+            },
+            "beginPosition": function(node, obj) {
+                obj.beginPosition = this.getChildValue(node);
+            },
+            "endPosition": function(node, obj) {
+                obj.endPosition = this.getChildValue(node);
+            }
+        },
+        "gml32": { // TODO: should be elsewhere
             "TimePeriod": function(node, obj) {
                 obj.TimePeriod = {};
                 this.readChildNodes(node, obj.TimePeriod);
